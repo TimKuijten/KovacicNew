@@ -171,9 +171,9 @@
 
     .process-block{margin-top:clamp(26px,4vw,44px)}
     .process-block:first-of-type{margin-top:clamp(18px,3.5vw,32px)}
-    .process-header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-    .process-header .lead{margin:0;text-align:left;flex:1 1 260px}
-    .process-header .mobile-fold-toggle{margin-top:0}
+    .process-header{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+    .process-header .lead{margin:0;text-align:center;flex:unset;width:100%}
+    .process-header .mobile-fold-toggle{margin-top:0;align-self:center}
 
     /* Fixed sector slider — 200px tall and each image spans full width */
     .sector-slider{
