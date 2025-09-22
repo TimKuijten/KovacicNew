@@ -147,7 +147,7 @@
     .testimonial-card::after{content:"";position:absolute;inset:auto -120px -120px auto;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06);filter:blur(0);pointer-events:none}
     .testimonial-header{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
     .testimonial-header .pill{align-self:flex-start;background:rgba(255,255,255,.1);color:#fff;border:none}
-    .testimonial-title{font-size:clamp(1.5rem,2.8vw,2.2rem);margin:0}
+    .testimonial-title{font-size:clamp(1.5rem,2.8vw,2.2rem);margin:0;color:#fff}
     .testimonial-sub{color:rgba(255,255,255,.75);max-width:65ch;margin:0}
     .testimonial-slider{position:relative;min-height:180px}
     .testimonial-slide{display:none}
@@ -963,13 +963,13 @@
       };
 
       const next = () => show((idx + 1) % slides.length);
-      let timer = setInterval(next, 7000);
+      let timer = setInterval(next, 10000);
 
       dots.forEach((dot, i) => {
         dot.addEventListener('click', () => {
           show(i);
           clearInterval(timer);
-          timer = setInterval(next, 7000);
+          timer = setInterval(next, 10000);
         });
       });
     })();
