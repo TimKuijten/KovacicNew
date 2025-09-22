@@ -171,9 +171,9 @@
 
     .process-block{margin-top:clamp(26px,4vw,44px)}
     .process-block:first-of-type{margin-top:clamp(18px,3.5vw,32px)}
-    .process-header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-    .process-header .lead{margin:0;text-align:left;flex:1 1 260px}
-    .process-header .mobile-fold-toggle{margin-top:0}
+    .process-header{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+    .process-header .lead{margin:0;text-align:center;flex:unset;width:100%}
+    .process-header .mobile-fold-toggle{margin-top:0;align-self:center}
 
     /* Fixed sector slider — 200px tall and each image spans full width */
     .sector-slider{
@@ -466,7 +466,7 @@
         <div class="hero-slide">
           <h1>We connect talent with the energy of change</h1>
           <div class="hero-mobile-visual">
-            <img src="https://images.unsplash.com/photo-1551836022-4c4c79ecde51?q=80&w=1200&auto=format&fit=crop" alt="Executive handshake in office">
+            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/Gemini_Generated_Image_hr9gythr9gythr9g.png" alt="Executive handshake in office"> 
           </div>
           <span class="pill">Results That Stick</span>
           <h1>85% 12-Month Retention</h1>
@@ -500,7 +500,7 @@
         <div class="ring" aria-hidden="true"></div>
         <div class="photo">
           <img class="is-active" src="https://kovacictalent.com/wp-content/uploads/2025/05/AdobeStock_641731816-scaled.jpeg" alt="Senior professional meeting in modern office">
-          <img src="https://images.unsplash.com/photo-1551836022-4c4c79ecde51?q=80&w=1200&auto=format&fit=crop" alt="Executive handshake in office">
+          <img src="https://kovacictalent.com/wp-content/uploads/2025/09/Gemini_Generated_Image_hr9gythr9gythr9g.png" alt="Executive handshake in office">
           <img src="https://kovacictalent.com/wp-content/uploads/2025/05/AdobeStock_1035652596-scaled.jpeg?q=80&w=1200&auto=format&fit=crop" alt="Team collaboration at work">
         </div>
       </div>
@@ -525,10 +525,10 @@
         </div>
         <div class="sector-slider">
           <div class="sector-track">
-            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/8478.jpg" alt="Technology sector">
-            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/landscape-with-windmills-scaled.jpg" alt="Renewable energy sector">
-            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/template_21-scaled.png" alt="Financial services sector">
-            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/large-vecteezy_confident-factory-worker-using-digital-tablet-in-industrial_47268909_large.jpg" alt="Industrial operations sector">
+            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/ambitious-leader-works-office-infographics-reports-setting-objectives-scaled.jpg" alt="Technology sector">
+            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/wind-farms-fields-scaled.jpg" alt="Renewable energy sector">
+            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/business-man-financial-inspector-secretary-making-report-calculating-checking-balance-internal-revenue-service-inspector-checking-document-audit-concept-scaled.jpg" alt="Financial services sector">
+            <img src="https://kovacictalent.com/wp-content/uploads/2025/09/Gemini_Generated_Image_yqllguyqllguyqll-1.png" alt="Industrial operations sector">
           </div>
         </div>
       </div>
@@ -629,28 +629,32 @@
           </button>
         </div>
         <div class="mobile-fold-content" id="process-classic">
-          <div class="grid g-4 mobile-two-cols">
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>01 • Discovery</strong>
-              <p>Deep dive into success profile, cultural fit, leadership traits, and role context.</p>
-            </div>
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>02 • Mapping</strong>
-              <p>Manual market research, direct headhunting, and building a validated longlist.</p>
-            </div>
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>03 • Shortlist</strong>
-              <p>Structured interviews, detailed candidate assessments, and weekly progress reports.</p>
-            </div>
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>04 • Close</strong>
-              <p>Offer strategy, expectation alignment, and onboarding support.</p>
-            </div>
-          </div>
+<div class="mobile-fold-content" id="process-classic">
+  <div class="grid g-4 mobile-two-cols">
+  <div class="card">
+    <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+    <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">1 • Discovery</strong>
+    <p>Deep dive into success profile, cultural fit, leadership traits, and role context.</p>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+    <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">2 • Mapping</strong>
+    <p>Manual market research, direct headhunting, and building a validated longlist.</p>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+    <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">3 • Shortlist</strong>
+    <p>Structured interviews, detailed candidate assessments, and weekly progress reports.</p>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+    <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">4 • Close</strong>
+    <p>Offer strategy, expectation alignment, and onboarding support.</p>
+  </div>
+</div>
+
+
+
           <div class="why-choose">
             <h3>Why choose the Classic Way?</h3>
             <ul>
@@ -672,28 +676,32 @@
           </button>
         </div>
         <div class="process-alt mobile-fold-content" id="process-ai">
-          <div class="grid g-4 mobile-two-cols">
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>01 • Discovery</strong>
-              <p>Success profile, culture signals, timeline and <strong>AI-based role calibration</strong>.</p>
-            </div>
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>02 • Mapping</strong>
-              <p><strong>AI-driven market scanning + human validation</strong>, delivering a smarter longlist faster.</p>
-            </div>
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>03 • Shortlist</strong>
-              <p>Structured interviews, predictive scorecards, and live dashboards with <strong>weekly AI-powered insights</strong>.</p>
-            </div>
-            <div class="card">
-              <svg viewBox="0 0 24 24" ...></svg>
-              <strong>04 • Close</strong>
-              <p>Offer strategy, expectation alignment, onboarding support, <strong>plus ongoing data-driven retention insights</strong>.</p>
-            </div>
-          </div>
+<div class="process-alt mobile-fold-content" id="process-ai">
+  <div class="grid g-4 mobile-two-cols">
+    <div class="card">
+      <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+      <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">1 • Discovery</strong>
+      <p>Success profile, culture signals, timeline and <strong>AI-based role calibration</strong>.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+      <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">2 • Mapping</strong>
+      <p><strong>AI-driven market scanning + human validation</strong>, delivering a smarter longlist faster.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+      <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">3 • Shortlist</strong>
+      <p>Structured interviews, predictive scorecards, and live dashboards with <strong>weekly AI-powered insights</strong>.</p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" style="display:block; margin:0 auto 0.5rem; height:32px;"></svg>
+      <strong style="display:block; text-align:center; margin:0 0 0.5rem 0;">4 • Close</strong>
+      <p>Offer strategy, expectation alignment, onboarding support, <strong>plus ongoing data-driven retention insights</strong>.</p>
+    </div>
+  </div>
+</div>
+
+
           <div class="why-choose">
             <h3>Why choose the AI-Enhanced Way?</h3>
             <ul>
