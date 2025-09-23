@@ -141,6 +141,32 @@
     }
     .accent{color:var(--accent)}
 
+    /* Testimonials */
+    .testimonials-section{padding-block: clamp(28px,5vw,64px)}
+    .testimonial-card{background:#0A212E;color:#fff;border-radius:var(--radius-lg);padding:clamp(24px,6vw,56px);box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .testimonial-card::after{content:"";position:absolute;inset:auto -120px -120px auto;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06);filter:blur(0);pointer-events:none}
+    .testimonial-header{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+    .testimonial-header .pill{align-self:flex-start;background:rgba(255,255,255,.1);color:#fff;border:none}
+    .testimonial-title{font-size:clamp(1.5rem,2.8vw,2.2rem);margin:0;color:#ffffff}
+    .testimonial-sub{color:rgba(255,255,255,.75);max-width:65ch;margin:0}
+    .testimonial-slider{position:relative;min-height:180px}
+    .testimonial-slide{display:none;padding:clamp(20px,4vw,28px);border-radius:var(--radius);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 42px rgba(3,13,23,.28)}
+    .testimonial-slide.is-active{display:block;animation:fadeIn .5s ease}
+    .testimonial-quote{font-size:1.05rem;line-height:1.7;margin:0 0 16px;font-weight:500}
+    .testimonial-meta{font-weight:600;opacity:.85}
+    .testimonial-dots{display:flex;gap:8px;margin-top:24px}
+    .testimonial-dots .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.28);border:none}
+    .testimonial-dots .dot.is-active{background:#fff}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    @media (max-width: 720px){
+      .testimonial-card{padding:clamp(20px,8vw,40px)}
+      .testimonial-header{gap:10px;margin-bottom:22px}
+      .testimonial-title{text-align:left}
+      .testimonial-sub{font-size:.95rem}
+      .testimonial-slider{min-height:auto}
+      .testimonial-slide{padding:clamp(16px,6vw,22px)}
+    }
+
     /* Sections */
     section{padding-block: clamp(24px, 4.5vw, 44px)}
     .section-title{text-align:center;margin-bottom:8px;font-size:clamp(1.2rem,2.2vw,1.8rem)}
@@ -506,6 +532,48 @@
       </div>
     </div>
   </header>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials" class="testimonials-section">
+    <div class="container">
+      <div class="testimonial-card">
+        <div class="testimonial-header">
+          <span class="pill">Client &amp; Candidate Stories</span>
+          <h2 class="testimonial-title">Testimonials</h2>
+          <p class="testimonial-sub">Real feedback from the organizations and leaders who trust us to deliver mission-critical talent searches.</p>
+        </div>
+        <div class="testimonial-slider" aria-live="polite">
+          <article class="testimonial-slide is-active">
+            <p class="testimonial-quote">“The search was completed in much shorter timelines than usual, with a level of closeness that gave us confidence at every stage of the process.”</p>
+            <p class="testimonial-meta">Client – Energy Sector (Spain) · People Director, Energy Company (confidential)</p>
+          </article>
+          <article class="testimonial-slide">
+            <p class="testimonial-quote">“The role was closed in record time and with full confidentiality. What stood out was the closeness throughout, always aligned with our strategic needs.”</p>
+            <p class="testimonial-meta">Client – Investment Fund (Chile) · Partner, Investment Fund (confidential)</p>
+          </article>
+          <article class="testimonial-slide">
+            <p class="testimonial-quote">“What made the difference was the ability to translate our strategy into concrete profiles and close the process quickly, while maintaining a close and transparent dialogue.”</p>
+            <p class="testimonial-meta">Client – General Manager (LatAm) · General Manager, Multinational (confidential)</p>
+          </article>
+          <article class="testimonial-slide">
+            <p class="testimonial-quote">“The process was clear and agile; from the beginning I felt a close support that allowed me to make my decision with full confidence.”</p>
+            <p class="testimonial-meta">Candidate – Executive Position (Mexico) · Candidate, Executive Role (confidential)</p>
+          </article>
+          <article class="testimonial-slide">
+            <p class="testimonial-quote">“The process combined speed with strategic vision: we incorporated a profile that understands ESG challenges and will shape our sustainability agenda for the coming years.”</p>
+            <p class="testimonial-meta">Client – Sustainability Manager (Spain) · Sustainability Manager, Industrial Company (confidential)</p>
+          </article>
+        </div>
+        <div class="testimonial-dots" aria-hidden="true">
+          <span class="dot is-active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- SECTORS -->
   <section id="sectors" class="section-beige">
@@ -878,6 +946,33 @@
       dots.forEach((dot,i)=>dot.addEventListener('click',()=>{show(i); clearInterval(timer); timer=setInterval(next,15000);}));      
       // Initialize first text slide visible
       copies[0].classList.add('is-active');
+    })();
+
+    /* Testimonials carousel */
+    (function(){
+      const slides = document.querySelectorAll('.testimonial-slide');
+      if(!slides.length) return;
+      const dots = document.querySelectorAll('.testimonial-dots .dot');
+      let idx = 0;
+
+      const show = n => {
+        slides[idx].classList.remove('is-active');
+        if(dots[idx]) dots[idx].classList.remove('is-active');
+        idx = n;
+        slides[idx].classList.add('is-active');
+        if(dots[idx]) dots[idx].classList.add('is-active');
+      };
+
+      const next = () => show((idx + 1) % slides.length);
+      let timer = setInterval(next, 10000);
+
+      dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+          show(i);
+          clearInterval(timer);
+          timer = setInterval(next, 10000);
+        });
+      });
     })();
 
     /* Sector slider (each image = full width, 200px tall) */
