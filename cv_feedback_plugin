@@ -342,28 +342,30 @@ JS;
         wp_enqueue_script('kcvf-es-form');
     }
 
-    public function shortcode() {
+    public function shortcode($atts = []) {
+        $defaults = $this->parse_form_defaults($atts, false);
         if (
             $_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['kcvf_es_nonce'])
             && isset($_POST['kcvf_mode'])
             && $_POST['kcvf_mode'] === 'submit'
         ) {
-            return $this->handle_submission(false);
+            return $this->handle_submission(false, $defaults);
         }
-        return $this->render_form();
+        return $this->render_form([], [], false, $defaults);
     }
 
-    public function shortcode_register() {
+    public function shortcode_register($atts = []) {
+        $defaults = $this->parse_form_defaults($atts, true);
         if (
             $_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['kcvf_es_nonce'])
             && isset($_POST['kcvf_mode'])
             && $_POST['kcvf_mode'] === 'register'
         ) {
-            return $this->handle_submission(true);
+            return $this->handle_submission(true, $defaults);
         }
-        return $this->render_form([], [], true);
+        return $this->render_form([], [], true, $defaults);
     }
 
     /** Normaliza fences/comillas raras del modelo */
@@ -396,12 +398,59 @@ JS;
         return $emails;
     }
 
-    private function render_form($errors = [], $old = [], $register_only = false) {
+    private function parse_form_defaults($atts, $register_only = false) {
+        $atts = array_change_key_case((array) $atts, CASE_LOWER);
+        $defaults = [];
+
+        foreach (['default_vacancy', 'vacancy', 'vacancy_id'] as $key) {
+            if (!empty($atts[$key])) {
+                $defaults['vacancy'] = intval($atts[$key]);
+                break;
+            }
+        }
+
+        if (empty($defaults['vacancy']) && !empty($atts['vacancy_title'])) {
+            $title = sanitize_text_field($atts['vacancy_title']);
+            if ($title !== '') {
+                $vac = get_page_by_title($title, 'OBJECT', 'post');
+                if ($vac && isset($vac->ID)) {
+                    $defaults['vacancy'] = intval($vac->ID);
+                }
+            }
+        }
+
+        $preselect = $atts['preselect_current'] ?? ($register_only ? '1' : '0');
+        if (empty($defaults['vacancy']) && $this->is_truthy($preselect)) {
+            $current_id = get_the_ID();
+            if ($current_id && get_post_type($current_id) === 'post') {
+                $defaults['vacancy'] = intval($current_id);
+            }
+        }
+
+        return $defaults;
+    }
+
+    private function is_truthy($value) {
+        if (is_bool($value)) {
+            return $value;
+        }
+        $value = strtolower(trim((string) $value));
+        return in_array($value, ['1', 'true', 'yes', 'y', 'on'], true);
+    }
+
+    private function render_form($errors = [], $old = [], $register_only = false, $defaults = []) {
         ob_start();
         $gdpr_text = get_option(self::OPT_GDPR_TEXT);
         $recaptcha_on = get_option(self::OPT_RECAPTCHA_ENABLE) === '1';
         $title = $register_only ? 'Register your CV' : 'Submit your CV for feedback';
         $btn   = $register_only ? 'Upload CV' : 'Send and get feedback';
+        $defaults = is_array($defaults) ? $defaults : [];
+        $vacancy_selected = 0;
+        if (isset($old['vacancy'])) {
+            $vacancy_selected = intval($old['vacancy']);
+        } elseif (isset($defaults['vacancy'])) {
+            $vacancy_selected = intval($defaults['vacancy']);
+        }
         ?>
         <div class="kcvf-wrapper">
             <h2><?php echo esc_html($title); ?></h2>
@@ -458,7 +507,6 @@ JS;
                     <select class="kcvf-select" name="kcvf_vacancy" id="kcvf_vacancy">
                         <option value="">— Select —</option>
                         <?php
-                        $vacancy_old = isset($old['vacancy']) ? intval($old['vacancy']) : 0;
                         $vacancies = get_posts([
                             'post_type'   => 'post',
                             'numberposts' => -1,
@@ -469,7 +517,7 @@ JS;
                             ]],
                         ]);
                         foreach ($vacancies as $vac) {
-                            printf('<option value="%d" %s>%s</option>', $vac->ID, selected($vacancy_old, $vac->ID, false), esc_html($vac->post_title));
+                            printf('<option value="%d" %s>%s</option>', $vac->ID, selected($vacancy_selected, $vac->ID, false), esc_html($vac->post_title));
                         }
                         ?>
                     </select>
@@ -510,9 +558,9 @@ JS;
         return ob_get_clean();
     }
 
-    private function handle_submission($register_only = false) {
+    private function handle_submission($register_only = false, $defaults = []) {
         if (!wp_verify_nonce($_POST['kcvf_es_nonce'], 'kcvf_es_submit')) {
-            return $this->render_form(['Invalid form token. Reload the page and try again.'], [], $register_only);
+            return $this->render_form(['Invalid form token. Reload the page and try again.'], [], $register_only, $defaults);
         }
 
         $errors = [];
@@ -636,7 +684,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
         }
 
         if (!empty($errors)) {
-            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'notes' => $notes, 'vacancy' => $vacancy], $register_only);
+            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
         }
 
         // Guardar envío

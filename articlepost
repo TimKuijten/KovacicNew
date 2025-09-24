@@ -115,6 +115,25 @@
     .article-frame .wp-block-post-content .alignright{float:right;margin:0 0 1em 1.4em;max-width:50%}
     .article-frame .wp-block-post-content iframe{width:100%;min-height:320px;border:none;border-radius:18px}
     .article-cta{margin-top:clamp(28px,4.5vw,40px);display:flex;justify-content:center}
+    .cv-modal{position:fixed;inset:0;padding:clamp(24px,6vw,72px);display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+    .cv-modal[hidden]{display:none;}
+    .cv-modal.is-visible{opacity:1;pointer-events:auto;}
+    .cv-modal-backdrop{position:absolute;inset:0;background:rgba(16,24,40,.55);}
+    .cv-modal-dialog{position:relative;z-index:1;width:min(100%,680px);max-height:90vh;overflow:auto;border-radius:var(--radius-lg);background:#fff;box-shadow:var(--shadow);padding:clamp(24px,4vw,42px);outline:none;}
+    .cv-modal-content{display:grid;gap:clamp(16px,3vw,24px);}
+    .cv-modal-meta{display:grid;gap:6px;}
+    .cv-modal-meta__label{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;}
+    .cv-modal-meta__title{margin:0;font-size:clamp(1.1rem,4vw,1.6rem);line-height:1.25;}
+    .cv-modal-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border-radius:999px;border:none;background:rgba(148,163,184,.2);color:var(--muted);display:grid;place-items:center;cursor:pointer;transition:background .2s ease,color .2s ease;}
+    .cv-modal-close:hover{background:rgba(148,163,184,.3);color:var(--ink);}
+    .cv-modal-close span{position:relative;width:14px;height:14px;display:block;}
+    .cv-modal-close span::before,
+    .cv-modal-close span::after{content:"";position:absolute;top:50%;left:0;right:0;height:2px;background:currentColor;transform-origin:50% 50%;}
+    .cv-modal-close span::before{transform:translateY(-50%) rotate(45deg);}
+    .cv-modal-close span::after{transform:translateY(-50%) rotate(-45deg);}
+    .cv-modal .kcvf-wrapper{box-shadow:none;padding:0;margin:0;}
+    .cv-modal .kcvf-wrapper h2{margin-top:0;}
+    body.cv-modal-open{overflow:hidden;}
 
     footer{background:#0b1220;color:#cbd5e1;padding-block:44px 28px;margin-top:clamp(40px,6vw,80px)}
     .footer-inner{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
@@ -221,7 +240,7 @@
           <a href="https://kovacictalent.com/#contact">Contact</a>
         </div>
         <div class="nav-cta">
-          <a class="btn btn-ghost" href="https://kovacictalent.com/mejoracv">Submit CV</a>
+          <a class="btn btn-ghost" href="#" data-cv-open role="button" aria-controls="cv-modal">Submit CV</a>
           <a class="btn btn-primary" href="https://kovacictalent.com/#contact">Request a Call</a>
           <a class="nav-linkedin" href="https://www.linkedin.com/company/kovacic-executive-talent/" target="_blank" rel="noopener noreferrer" aria-label="Kovacic Talent on LinkedIn (opens in a new tab)">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -240,11 +259,31 @@
         <!-- wp:post-featured-image /-->
         <!-- wp:post-content /-->
         <div class="article-cta">
-          <a class="btn btn-primary" href="https://kovacictalent.com/contacta-con-nosotros">Submit CV</a>
+          <a class="btn btn-primary" href="#" data-cv-open role="button" aria-controls="cv-modal">Submit CV</a>
         </div>
       </div>
     </div>
   </main>
+
+  <div class="cv-modal" id="cv-modal" data-cv-modal hidden aria-hidden="true">
+    <div class="cv-modal-backdrop" data-cv-close></div>
+    <div class="cv-modal-dialog" role="dialog" aria-modal="true" aria-label="Submit your CV" tabindex="-1">
+      <button type="button" class="cv-modal-close" data-cv-close aria-label="Close CV form">
+        <span aria-hidden="true"></span>
+      </button>
+      <div class="cv-modal-content">
+        <div class="cv-modal-meta">
+          <p class="cv-modal-meta__label">Opportunity</p>
+          <!-- wp:post-title {"level":3,"className":"cv-modal-meta__title"} /-->
+        </div>
+        <div class="cv-modal-form">
+          <!-- wp:shortcode -->
+          [kovacic_cv_register preselect_current="1"]
+          <!-- /wp:shortcode -->
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <div class="container footer-inner">
@@ -319,8 +358,147 @@
         <button type="button" class="cookie-btn cookie-btn-secondary" data-cookie-close>Cancel</button>
         <button type="button" class="cookie-btn cookie-btn-primary" data-cookie-save>Save preferences</button>
       </div>
-    </div>
   </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.querySelector('[data-cv-modal]');
+      if (!modal) return;
+      const openers = document.querySelectorAll('[data-cv-open]');
+      const dialog = modal.querySelector('.cv-modal-dialog');
+      const closers = modal.querySelectorAll('[data-cv-close]');
+      let lastTrigger = null;
+      const transitionMs = 280;
+      let finalizeHandler = null;
+      let finalizeTimeout = null;
+      const focusableSelectors = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+      const getFocusableElements = () => {
+        const nodes = modal.querySelectorAll(focusableSelectors);
+        return Array.from(nodes).filter(el => {
+          if (el.hasAttribute('disabled')) return false;
+          if (el.getAttribute('aria-hidden') === 'true') return false;
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        });
+      };
+
+      const focusDialog = () => {
+        if (dialog && typeof dialog.focus === 'function') {
+          dialog.focus({ preventScroll: true });
+        }
+      };
+
+      const openModal = event => {
+        if (event) {
+          event.preventDefault();
+          lastTrigger = event.currentTarget;
+        }
+        if (!modal.hidden && modal.classList.contains('is-visible')) {
+          return;
+        }
+        if (finalizeHandler) {
+          modal.removeEventListener('transitionend', finalizeHandler);
+          if (finalizeTimeout) {
+            clearTimeout(finalizeTimeout);
+            finalizeTimeout = null;
+          }
+          finalizeHandler = null;
+        }
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        requestAnimationFrame(() => {
+          modal.classList.add('is-visible');
+          focusDialog();
+        });
+        document.body.classList.add('cv-modal-open');
+        const firstInput = modal.querySelector('#kcvf_name');
+        if (firstInput) {
+          setTimeout(() => {
+            try {
+              firstInput.focus({ preventScroll: true });
+            } catch (err) {
+              firstInput.focus();
+            }
+          }, 180);
+        }
+      };
+
+      const closeModal = () => {
+        if (modal.hidden || !modal.classList.contains('is-visible')) {
+          return;
+        }
+        modal.classList.remove('is-visible');
+        document.body.classList.remove('cv-modal-open');
+        const finalize = () => {
+          modal.hidden = true;
+          modal.setAttribute('aria-hidden', 'true');
+          if (finalizeHandler) {
+            modal.removeEventListener('transitionend', finalizeHandler);
+            finalizeHandler = null;
+          }
+          if (finalizeTimeout) {
+            clearTimeout(finalizeTimeout);
+            finalizeTimeout = null;
+          }
+          if (lastTrigger && typeof lastTrigger.focus === 'function') {
+            lastTrigger.focus();
+          }
+        };
+        finalizeHandler = finalize;
+        modal.addEventListener('transitionend', finalizeHandler);
+        finalizeTimeout = setTimeout(finalizeHandler, transitionMs);
+      };
+
+      openers.forEach(trigger => {
+        trigger.addEventListener('click', openModal);
+      });
+
+      closers.forEach(control => {
+        control.addEventListener('click', event => {
+          event.preventDefault();
+          closeModal();
+        });
+      });
+
+      modal.addEventListener('click', event => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener('keydown', event => {
+        if (!modal.classList.contains('is-visible')) {
+          return;
+        }
+        if (event.key === 'Escape') {
+          closeModal();
+          return;
+        }
+        if (event.key === 'Tab') {
+          const focusable = getFocusableElements();
+          if (focusable.length === 0) {
+            event.preventDefault();
+            return;
+          }
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          const active = document.activeElement;
+          if (event.shiftKey) {
+            if (!modal.contains(active) || active === first) {
+              event.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (!modal.contains(active) || active === last) {
+              event.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      });
+    });
+  </script>
 
   <script>
     const yearTarget = document.getElementById('y');
