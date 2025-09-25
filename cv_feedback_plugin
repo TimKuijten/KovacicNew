@@ -408,6 +408,13 @@ JS;
         }
 
         if (empty($defaults['vacancy'])) {
+            $referer_vacancy = $this->get_vacancy_from_referer();
+            if ($referer_vacancy) {
+                $defaults['vacancy'] = $referer_vacancy;
+            }
+        }
+
+        if (empty($defaults['vacancy'])) {
             foreach (['default_vacancy', 'vacancy', 'vacancy_id'] as $key) {
                 if (empty($atts[$key])) {
                     continue;
@@ -494,6 +501,51 @@ JS;
             $maybe = $this->resolve_vacancy_id($raw);
             if ($maybe) {
                 return $maybe;
+            }
+        }
+
+        return 0;
+    }
+
+    private function get_vacancy_from_referer() {
+        if (empty($_SERVER['HTTP_REFERER'])) {
+            return 0;
+        }
+
+        $raw = wp_unslash($_SERVER['HTTP_REFERER']);
+        if ($raw === '') {
+            return 0;
+        }
+
+        $post_id = url_to_postid($raw);
+        if ($post_id && get_post_type($post_id) === 'post') {
+            return intval($post_id);
+        }
+
+        $parts = wp_parse_url($raw);
+        $path  = isset($parts['path']) ? trim($parts['path']) : '';
+        if ($path === '') {
+            return 0;
+        }
+
+        $path = ltrim($path, '/');
+        if ($path === '') {
+            return 0;
+        }
+
+        $vacancy = get_page_by_path($path, 'OBJECT', 'post');
+        if ($vacancy && isset($vacancy->ID) && get_post_type($vacancy->ID) === 'post') {
+            return intval($vacancy->ID);
+        }
+
+        if (strpos($path, '/') !== false) {
+            $segments = array_filter(explode('/', $path));
+            $last = end($segments);
+            if ($last) {
+                $maybe = $this->resolve_vacancy_id($last);
+                if ($maybe) {
+                    return $maybe;
+                }
             }
         }
 
