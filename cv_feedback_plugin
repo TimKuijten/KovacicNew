@@ -2,7 +2,7 @@
 /*
 Plugin Name: Kovacic CV Feedback + reCAPTCHA v3
 Description: CV submission with AI-powered feedback (PDF/DOCX). If the server cannot read the PDF, the browser extracts the text with PDF.js and, if it is scanned, performs OCR with Tesseract.js; it then sends the hidden text and the server generates a temporary DOCX from that text for a reliable flow.
-Version: 1.6.0
+Version: 1.7.0
 Author: Tim Kuijten - Kovacic Executive Talent Research
 */
 
@@ -402,20 +402,35 @@ JS;
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $defaults = [];
 
-        foreach (['default_vacancy', 'vacancy', 'vacancy_id'] as $key) {
-            if (!empty($atts[$key])) {
-                $defaults['vacancy'] = intval($atts[$key]);
-                break;
+        $request_vacancy = $this->get_vacancy_from_request();
+        if ($request_vacancy) {
+            $defaults['vacancy'] = $request_vacancy;
+        }
+
+        if (empty($defaults['vacancy'])) {
+            $referer_vacancy = $this->get_vacancy_from_referer();
+            if ($referer_vacancy) {
+                $defaults['vacancy'] = $referer_vacancy;
+            }
+        }
+
+        if (empty($defaults['vacancy'])) {
+            foreach (['default_vacancy', 'vacancy', 'vacancy_id'] as $key) {
+                if (empty($atts[$key])) {
+                    continue;
+                }
+                $maybe = $this->resolve_vacancy_id($atts[$key]);
+                if ($maybe) {
+                    $defaults['vacancy'] = $maybe;
+                    break;
+                }
             }
         }
 
         if (empty($defaults['vacancy']) && !empty($atts['vacancy_title'])) {
-            $title = sanitize_text_field($atts['vacancy_title']);
-            if ($title !== '') {
-                $vac = get_page_by_title($title, 'OBJECT', 'post');
-                if ($vac && isset($vac->ID)) {
-                    $defaults['vacancy'] = intval($vac->ID);
-                }
+            $maybe = $this->resolve_vacancy_id($atts['vacancy_title']);
+            if ($maybe) {
+                $defaults['vacancy'] = $maybe;
             }
         }
 
@@ -436,6 +451,118 @@ JS;
         }
         $value = strtolower(trim((string) $value));
         return in_array($value, ['1', 'true', 'yes', 'y', 'on'], true);
+    }
+
+    private function resolve_vacancy_id($value) {
+        if (is_numeric($value)) {
+            $id = absint($value);
+            if ($id && get_post_type($id) === 'post') {
+                return $id;
+            }
+        }
+
+        $value = trim((string) $value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $title = sanitize_text_field($value);
+        if ($title !== '') {
+            $vacancy = get_page_by_title($title, 'OBJECT', 'post');
+            if ($vacancy && isset($vacancy->ID) && get_post_type($vacancy->ID) === 'post') {
+                return intval($vacancy->ID);
+            }
+        }
+
+        $slug = sanitize_title($value);
+        if ($slug !== '') {
+            $vacancy = get_page_by_path($slug, 'OBJECT', 'post');
+            if ($vacancy && isset($vacancy->ID) && get_post_type($vacancy->ID) === 'post') {
+                return intval($vacancy->ID);
+            }
+        }
+
+        return 0;
+    }
+
+    private function get_vacancy_from_request() {
+        $keys = ['vacancy', 'vacancy_id', 'vacancy_title', 'vacancy_slug'];
+        foreach ($keys as $key) {
+            if (!isset($_GET[$key])) {
+                continue;
+            }
+            $raw = wp_unslash($_GET[$key]);
+            if (is_array($raw)) {
+                $raw = reset($raw);
+            }
+            if ($raw === '') {
+                continue;
+            }
+            $maybe = $this->resolve_vacancy_id($raw);
+            if ($maybe) {
+                return $maybe;
+            }
+        }
+
+        return 0;
+    }
+
+    private function get_vacancy_from_referer() {
+        if (empty($_SERVER['HTTP_REFERER'])) {
+            return 0;
+        }
+
+        $raw = wp_unslash($_SERVER['HTTP_REFERER']);
+        if ($raw === '') {
+            return 0;
+        }
+
+        $post_id = url_to_postid($raw);
+        if ($post_id && get_post_type($post_id) === 'post') {
+            return intval($post_id);
+        }
+
+        $parts = wp_parse_url($raw);
+        $path  = isset($parts['path']) ? trim($parts['path']) : '';
+        if ($path === '') {
+            return 0;
+        }
+
+        $path = ltrim($path, '/');
+        if ($path === '') {
+            return 0;
+        }
+
+        $vacancy = get_page_by_path($path, 'OBJECT', 'post');
+        if ($vacancy && isset($vacancy->ID) && get_post_type($vacancy->ID) === 'post') {
+            return intval($vacancy->ID);
+        }
+
+        if (strpos($path, '/') !== false) {
+            $segments = array_filter(explode('/', $path));
+            $last = end($segments);
+            if ($last) {
+                $maybe = $this->resolve_vacancy_id($last);
+                if ($maybe) {
+                    return $maybe;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private function describe_vacancy_for_notification($vacancy_id) {
+        $vacancy_id = absint($vacancy_id);
+        if ($vacancy_id > 0) {
+            $vacancy = get_post($vacancy_id);
+            if ($vacancy && isset($vacancy->post_title) && get_post_type($vacancy_id) === 'post') {
+                return $vacancy->post_title;
+            }
+            return 'Vacancy #' . $vacancy_id;
+        }
+
+        return 'Default vacancy (not specified)';
     }
 
     private function render_form($errors = [], $old = [], $register_only = false, $defaults = []) {
@@ -564,13 +691,19 @@ JS;
         }
 
         $errors = [];
-        $name   = isset($_POST['kcvf_name']) ? sanitize_text_field($_POST['kcvf_name']) : '';
-        $email  = isset($_POST['kcvf_email']) ? sanitize_email($_POST['kcvf_email']) : '';
-        $role   = isset($_POST['kcvf_role']) ? sanitize_text_field($_POST['kcvf_role']) : '';
-        $sector = isset($_POST['kcvf_sector']) ? sanitize_text_field($_POST['kcvf_sector']) : '';
-        $notes  = isset($_POST['kcvf_notes']) ? sanitize_textarea_field($_POST['kcvf_notes']) : '';
+        $name    = isset($_POST['kcvf_name']) ? sanitize_text_field($_POST['kcvf_name']) : '';
+        $email   = isset($_POST['kcvf_email']) ? sanitize_email($_POST['kcvf_email']) : '';
+        $role    = isset($_POST['kcvf_role']) ? sanitize_text_field($_POST['kcvf_role']) : '';
+        $sector  = isset($_POST['kcvf_sector']) ? sanitize_text_field($_POST['kcvf_sector']) : '';
+        $notes   = isset($_POST['kcvf_notes']) ? sanitize_textarea_field($_POST['kcvf_notes']) : '';
         $vacancy = isset($_POST['kcvf_vacancy']) ? intval($_POST['kcvf_vacancy']) : 0;
         $consent = !empty($_POST['kcvf_consent']);
+
+        $vacancy_effective = absint($vacancy);
+        if (!$vacancy_effective && !empty($defaults['vacancy'])) {
+            $vacancy_effective = absint($defaults['vacancy']);
+        }
+        $vacancy_label = $this->describe_vacancy_for_notification($vacancy_effective);
 
         if (!$name) $errors[] = 'Please enter your name.';
         if (!$email || !is_email($email)) $errors[] = 'Please enter a valid email address.';
@@ -748,8 +881,8 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
                 if ($file_text) {
                     update_post_meta($candidate_id, 'kvt_cv_text', $file_text);
                 }
-                if ($vacancy) {
-                    $vac_post = get_post($vacancy);
+                if ($vacancy_effective) {
+                    $vac_post = get_post($vacancy_effective);
                     if ($vac_post) {
                         $term = get_term_by('name', $vac_post->post_title, 'kvt_process');
                         if ($term && !is_wp_error($term)) {
@@ -789,20 +922,10 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             ];
             $safe_feedback = wp_kses( $no_strong, $allowed );
 
-            // Email al candidato (HTML)
-            if (is_email($email)) {
-                $headers = ['Content-Type: text/html; charset=UTF-8'];
-            $body = '<p>Hello' . ($name ? ' ' . esc_html($name) : '') . '</p>
-            <p>Thank you for sharing your CV. Here is your feedback:</p>'
-                    . $safe_feedback
-                    . '<p>Kovacic Executive Talent Research Team</p>';
-                wp_mail($email, 'Your CV feedback', $body, $headers);
-            }
-
             // Aviso interno (texto)
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
             }
 
@@ -824,17 +947,12 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             // Solo aviso interno y/o confirmación de registro
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
-                $subject = $register_only ? 'New CV registration' : 'New CV submission';
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
+                 $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
                 if (!$register_only) {
                     $body_admin .= "(Instant feedback is disabled.)";
                 }
                 wp_mail($notify, $subject, $body_admin);
-            }
-            if ($register_only && is_email($email)) {
-                $headers = ['Content-Type: text/html; charset=UTF-8'];
-                $body = '<p>Hello ' . ($name ? '' . esc_html($name) : '') . '</p><p>Thank you for sharing your CV. We will contact you for future opportunities.</p><p>Kovacic Executive Talent Research Team</p>';
-                wp_mail($email, 'CV received', $body, $headers);
             }
             $feedback_block = '<div class="kcvf-alert"><strong>' . esc_html($thankyou) . '</strong></div>';
 
