@@ -741,6 +741,7 @@ JS;
         // Subida + extracción
         $file_text = '';
         $stored_path = '';
+        $stored_url  = '';
         $extract_method = 'unknown';
         $char_count = 0;
         $excerpt_400 = '';
@@ -774,6 +775,9 @@ JS;
                         $errors[] = 'Could not save the file on the server.';
                     } else {
                         $stored_path = $dest;
+                        if (isset($upload_dir['basedir'], $upload_dir['baseurl'])) {
+                            $stored_url = str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $stored_path);
+                        }
 
                         if ($ext === 'docx') {
                             $file_text = $this->extract_docx_text($dest);
@@ -925,7 +929,8 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             // Aviso interno (texto)
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
+                $file_link = $stored_url ?: $stored_path;
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$file_link}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
             }
 
@@ -947,8 +952,9 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             // Solo aviso interno y/o confirmación de registro
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
+                $file_link = $stored_url ?: $stored_path;
                  $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$file_link}\n";
                 if (!$register_only) {
                     $body_admin .= "(Instant feedback is disabled.)";
                 }
