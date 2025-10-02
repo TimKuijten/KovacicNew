@@ -435,11 +435,36 @@ JS;
     }
 
     private function parse_email_list($raw) {
-        $raw = (string) $raw;
-        if ($raw === '') {
+        $parts = [];
+        $collect = function ($value) use (&$collect, &$parts) {
+            if (is_array($value)) {
+                foreach ($value as $item) {
+                    $collect($item);
+                }
+                return;
+            }
+
+            $value = trim((string) $value);
+            if ($value === '') {
+                return;
+            }
+
+            $split = preg_split('/[\s,;]+/', $value);
+            if ($split !== false) {
+                foreach ($split as $entry) {
+                    if ($entry !== '') {
+                        $parts[] = $entry;
+                    }
+                }
+            }
+        };
+
+        $collect($raw);
+
+        if (empty($parts)) {
             return [];
         }
-        $parts = preg_split('/[\s,;]+/', $raw);
+
         $emails = [];
         foreach ($parts as $part) {
             $email = sanitize_email($part);
