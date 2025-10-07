@@ -1063,7 +1063,7 @@
       const container = document.getElementById('blog-posts');
       if(!container) return;
       try{
-        const res = await fetch('https://kovacictalent.com/wp-json/wp/v2/posts?per_page=3&_embed');
+        const res = await fetch('https://kovacictalent.com/wp-json/wp/v2/posts?per_page=6&_embed');
         const posts = await res.json();
         posts.forEach(p=>{
           const img = p._embedded && p._embedded['wp:featuredmedia'] ? p._embedded['wp:featuredmedia'][0].source_url : '';
