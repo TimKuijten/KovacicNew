@@ -178,6 +178,7 @@
     .contact-grid{grid-template-columns:1.1fr .9fr;gap:24px}
     #process-archive .lead{text-align:center;margin-inline:auto;margin-bottom:32px;max-width:62ch}
     .archive-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:28px;align-items:start}
+    .archive-column .grid{grid-template-columns:1fr;gap:18px}
     .archive-column{display:flex;flex-direction:column;gap:18px}
     .archive-title{margin:0;font-size:1.1rem;color:var(--ink);text-align:left}
     .archive-pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:4px;flex-wrap:wrap}
@@ -1126,8 +1127,12 @@
         const terms = post?._embedded?.['wp:term'] || [];
         for(const group of terms){
           for(const term of group){
-            if(term?.taxonomy === 'post_tag' && term?.slug === 'closed'){
-              return true;
+            if(term?.taxonomy === 'post_tag'){
+              const slug = (term?.slug || '').toLowerCase();
+              const name = (term?.name || '').toLowerCase();
+              if(slug === 'closed' || name === 'closed'){
+                return true;
+              }
             }
           }
         }
