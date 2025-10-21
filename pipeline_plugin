@@ -10303,6 +10303,7 @@ JS;
             delete_post_meta($id, 'kvt_longlist_pending');
             if ($decision === 'reject') {
                 update_post_meta($id, 'kvt_status', 'Descartados');
+                $this->send_candidate_rejection_email($id);
             } else {
                 update_post_meta($id, 'kvt_status', 'Long list');
             }
@@ -10619,6 +10620,86 @@ JS;
             if ($attachment) wp_delete_file($attachment);
 
             wp_send_json_success($result);
+        }
+
+        private function send_candidate_rejection_email($candidate_id) {
+            $email_raw = $this->meta_get_compat($candidate_id, 'kvt_email', ['email']);
+            $email = sanitize_email($email_raw);
+            if (!$email) {
+                return;
+            }
+
+            $first   = $this->meta_get_compat($candidate_id, 'kvt_first_name', ['first_name']);
+            $surname = $this->meta_get_compat($candidate_id, 'kvt_last_name', ['last_name']);
+            $country = $this->meta_get_compat($candidate_id, 'kvt_country', ['country']);
+            $city    = $this->meta_get_compat($candidate_id, 'kvt_city', ['city']);
+            $role    = $this->get_term_name($candidate_id, self::TAX_PROCESS);
+            $client  = $this->get_term_name($candidate_id, self::TAX_CLIENT);
+
+            $full_name = trim(trim((string) $first) . ' ' . trim((string) $surname));
+            if ($full_name === '') {
+                $full_name = $first ?: $surname ?: __('candidato/a', 'kovacic');
+            }
+
+            if ($role && $client) {
+                $subject_tpl = 'Actualización sobre el proceso {{role}} en {{client}}';
+            } elseif ($role) {
+                $subject_tpl = 'Actualización sobre el proceso {{role}}';
+            } elseif ($client) {
+                $subject_tpl = 'Actualización sobre tu candidatura en {{client}}';
+            } else {
+                $subject_tpl = 'Actualización sobre tu candidatura';
+            }
+
+            $body_tpl = 'Hola {{first_name}},<br><br>';
+            if ($role) {
+                $body_tpl .= 'Gracias por tu interés en el proceso {{role}}';
+                if ($client) {
+                    $body_tpl .= ' de {{client}}';
+                }
+                $body_tpl .= '. ';
+            } elseif ($client) {
+                $body_tpl .= 'Gracias por tu interés en colaborar con {{client}}. ';
+            } else {
+                $body_tpl .= 'Gracias por tu interés en nuestros procesos de selección. ';
+            }
+            $body_tpl .= 'Tras analizar tu perfil con detenimiento, en esta ocasión avanzaremos con otras candidaturas. ';
+            $body_tpl .= 'Valoramos mucho el tiempo que dedicaste y esperamos poder considerar tu perfil en futuras oportunidades. ';
+            $body_tpl .= '<br><br>Saludos cordiales,<br>{{sender}}';
+
+            $recipient = [
+                'email'      => $email,
+                'first_name' => $full_name,
+                'surname'    => $surname,
+                'country'    => $country,
+                'city'       => $city,
+                'role'       => $role,
+                'client'     => $client,
+                'status'     => 'Descartado',
+            ];
+
+            $templates = apply_filters('kvt_rejection_email_template', ['subject' => $subject_tpl, 'body' => $body_tpl], $candidate_id, $recipient);
+            if (is_array($templates)) {
+                if (isset($templates['subject'])) {
+                    $subject_tpl = (string) $templates['subject'];
+                }
+                if (isset($templates['body'])) {
+                    $body_tpl = (string) $templates['body'];
+                }
+            }
+
+            $batch = [
+                'subject_tpl'  => $subject_tpl,
+                'body_tpl'     => $body_tpl,
+                'recipients'   => [$recipient],
+                'use_signature'=> true,
+                'copy_sender'  => false,
+            ];
+
+            $result = $this->send_email_batch($batch);
+            if (!empty($result['sent'])) {
+                update_post_meta($candidate_id, 'kvt_rejection_email_sent', current_time('mysql'));
+            }
         }
 
         private function send_email_batch($batch) {
