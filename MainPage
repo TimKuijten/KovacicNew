@@ -1085,7 +1085,9 @@
       let currentPage = 1;
       let loading = false;
 
-      const setMessage = (message) => {
+      listEl.setAttribute('aria-live', 'polite');
+
+      const setMessage = (message, { preservePagination = false } = {}) => {
         listEl.innerHTML = '';
         const msg = document.createElement('p');
         msg.className = 'muted';
@@ -1093,7 +1095,9 @@
         msg.style.textAlign = 'center';
         msg.textContent = message;
         listEl.appendChild(msg);
-        paginationEl.innerHTML = '';
+        if(!preservePagination){
+          paginationEl.innerHTML = '';
+        }
       };
 
       const stripHtml = (value) => {
@@ -1214,7 +1218,7 @@
         if(loading) return;
         loading = true;
         listEl.setAttribute('aria-busy', 'true');
-        setMessage('Loading closed processes…');
+        setMessage('Loading closed processes…', { preservePagination: true });
 
         try{
           if(taxonomyFilter === null){
@@ -1260,7 +1264,10 @@
       paginationEl.addEventListener('click', (event) => {
         const target = event.target;
         if(!(target instanceof HTMLElement)) return;
-        const pageValue = target.dataset.page;
+        const button = target.closest('button[data-page]');
+        if(!(button instanceof HTMLElement)) return;
+        event.preventDefault();
+        const pageValue = button.dataset.page;
         if(!pageValue) return;
         const page = parseInt(pageValue, 10);
         if(Number.isNaN(page) || page < 1 || page === currentPage) return;
