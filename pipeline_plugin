@@ -5953,7 +5953,13 @@ function kvtInit(){
       if(!confirm('¿Descartar candidato?')) return;
       const id = reject.dataset.id;
       ajaxForm({action:'kvt_longlist_decision', _ajax_nonce:KVT_NONCE, id:id, decision:'reject'}).then(j=>{
-        if(j.success){ fetchData(); } else { alert('No se pudo descartar.'); }
+        if(j.success){
+          const row = reject.closest('tr');
+          if(row) row.remove();
+          refresh();
+        } else {
+          alert('No se pudo descartar.');
+        }
       });
       return;
     }
