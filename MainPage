@@ -1087,8 +1087,13 @@
       const nextBtn = pagination.querySelector('[data-action="next"]');
       const pageInfo = pagination.querySelector('[data-page-info]');
       const pageSize = 3;
+      const siteBase = 'https://kovacictalent.com';
+      const apiBase = `${siteBase}/wp-json/wp/v2`;
+      const closedTagSlug = 'closed';
       let posts = [];
       let currentPage = 1;
+
+      const sanitize = value => (value || '').replace(/<[^>]+>/g,'').trim();
 
       const render = () => {
         container.innerHTML = '';
@@ -1107,7 +1112,7 @@
           const article = document.createElement('article');
           article.className = 'card';
           const excerptRaw = p.excerpt && p.excerpt.rendered ? p.excerpt.rendered : '';
-          const excerpt = excerptRaw.replace(/<[^>]+>/g,'').slice(0,140);
+          const excerpt = sanitize(excerptRaw).slice(0, 140);
           article.innerHTML = `
             <h3>${p.title.rendered}</h3>
             <p>${excerpt}</p>
@@ -1135,25 +1140,41 @@
         render();
       });
 
+      const fetchJson = async url => {
+        const response = await fetch(url);
+        if(!response.ok) throw new Error(response.statusText || `Status ${response.status}`);
+        return response.json();
+      };
+
+      const resolveClosedTagId = async () => {
+        try{
+          const tags = await fetchJson(`${apiBase}/tags?slug=${closedTagSlug}`);
+          const tag = Array.isArray(tags) ? tags.find(t => t && t.slug === closedTagSlug) : null;
+          return tag ? tag.id : null;
+        }catch(err){
+          console.warn('Unable to resolve closed tag id, falling back to slug filtering', err);
+          return null;
+        }
+      };
+
       container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Loading closed processes…</p>';
 
       try{
-        const res = await fetch('https://kovacictalent.com/wp-json/wp/v2/posts?per_page=100&_embed');
-        if(!res.ok) throw new Error(res.statusText || `Status ${res.status}`);
-        const data = await res.json();
-        posts = data.filter(post => {
+        const closedTagId = await resolveClosedTagId();
+        const query = closedTagId
+          ? `${apiBase}/posts?per_page=100&_embed&tags=${closedTagId}`
+          : `${apiBase}/posts?per_page=100&_embed`;
+        const data = await fetchJson(query);
+
+        posts = Array.isArray(data) ? data.filter(post => {
+          if(!post || !post.title) return false;
+          if(closedTagId){
+            return Array.isArray(post.tags) && post.tags.includes(closedTagId);
+          }
           const termGroups = (post._embedded && post._embedded['wp:term']) || [];
-          let hasClosed = false;
-          termGroups.forEach(group => {
-            if(!Array.isArray(group)) return;
-            group.forEach(term => {
-              if(term && term.taxonomy === 'post_tag' && term.slug === 'closed'){
-                hasClosed = true;
-              }
-            });
-          });
-          return hasClosed;
-        });
+          return termGroups.some(group => Array.isArray(group) && group.some(term => term && term.taxonomy === 'post_tag' && term.slug === closedTagSlug));
+        }) : [];
+
         render();
       }catch(err){
         container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Unable to load closed processes right now.</p>';
