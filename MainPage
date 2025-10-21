@@ -175,6 +175,11 @@
     .grid{display:grid;gap:22px}
     .g-3{grid-template-columns:repeat(3,1fr)}
     .g-4{grid-template-columns:repeat(4,1fr)}
+    #closed-processes .pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+    #closed-processes .pagination button{border:1px solid var(--line);background:#fff;color:var(--accent);border-radius:999px;padding:.55rem 1.1rem;font-weight:600;cursor:pointer;transition:background .2s ease,color .2s ease,border-color .2s ease;min-width:120px}
+    #closed-processes .pagination button:hover:not([disabled]){background:var(--accent);color:#fff;border-color:var(--accent)}
+    #closed-processes .pagination button[disabled]{opacity:.5;cursor:not-allowed}
+    #closed-processes .pagination .page-indicator{font-weight:600;color:var(--muted)}
     .contact-grid{grid-template-columns:1.1fr .9fr;gap:24px}
     .card{background:#fafafa;border:1px solid var(--line);border-radius:var(--radius);padding:20px}
     .card h3{margin:8px 0 6px}
@@ -795,7 +800,12 @@
     <div id="blog-posts" class="grid g-3"></div>
   </section>
 
-</section>
+  <section id="closed-processes" class="container">
+    <h2 class="section-title"><span class="values-title">Recently Closed</span></h2>
+    <p class="lead">A look at the processes we've successfully closed.</p>
+    <div id="closed-processes-list" class="grid g-3" role="list"></div>
+    <div id="closed-processes-pagination" class="pagination" role="navigation" aria-label="Closed processes pagination"></div>
+  </section>
 
 
   <!-- CONTACT / CTA -->
@@ -1059,6 +1069,205 @@
       });
 
       sync();
+    })();
+
+    /* Load recently closed processes */
+    (function(){
+      const API_BASE = 'https://kovacictalent.com/wp-json/wp/v2';
+      const TAG_SLUG = 'closed';
+      const PER_PAGE = 3;
+      const listEl = document.getElementById('closed-processes-list');
+      const paginationEl = document.getElementById('closed-processes-pagination');
+      if(!listEl || !paginationEl) return;
+
+      let taxonomyFilter = null;
+      let totalPages = 0;
+      let currentPage = 1;
+      let loading = false;
+
+      const setMessage = (message) => {
+        listEl.innerHTML = '';
+        const msg = document.createElement('p');
+        msg.className = 'muted';
+        msg.style.gridColumn = '1 / -1';
+        msg.style.textAlign = 'center';
+        msg.textContent = message;
+        listEl.appendChild(msg);
+        paginationEl.innerHTML = '';
+      };
+
+      const stripHtml = (value) => {
+        return typeof value === 'string' ? value.replace(/<[^>]+>/g, '').trim() : '';
+      };
+
+      const resolveFilter = async () => {
+        const attemptFetch = async (resource, query) => {
+          try{
+            const res = await fetch(`${API_BASE}/${resource}?${query}`);
+            if(!res.ok) return null;
+            const data = await res.json();
+            if(Array.isArray(data) && data.length){
+              const exact = data.find(t => t.slug === TAG_SLUG) || data[0];
+              if(exact && typeof exact.id === 'number'){
+                return {
+                  param: resource === 'categories' ? 'categories' : 'tags',
+                  id: exact.id
+                };
+              }
+            }
+            return null;
+          }catch(err){
+            console.error('Failed to resolve closed tag', err);
+            return null;
+          }
+        };
+
+        return (await attemptFetch('tags', `slug=${TAG_SLUG}`))
+          ?? (await attemptFetch('tags', 'search=closed'))
+          ?? (await attemptFetch('categories', `slug=${TAG_SLUG}`))
+          ?? (await attemptFetch('categories', 'search=closed'));
+      };
+
+      const renderCards = (items) => {
+        listEl.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        items.forEach(item => {
+          const article = document.createElement('article');
+          article.className = 'card';
+          article.setAttribute('role', 'listitem');
+
+          const pill = document.createElement('span');
+          pill.className = 'pill';
+          pill.textContent = 'Closed';
+          article.appendChild(pill);
+
+          const title = document.createElement('h3');
+          title.textContent = stripHtml(item?.title?.rendered) || 'Untitled process';
+          article.appendChild(title);
+
+          if(item?.date){
+            const date = new Date(item.date);
+            if(!Number.isNaN(date.valueOf())){
+              const meta = document.createElement('p');
+              meta.className = 'muted';
+              meta.style.marginTop = '-4px';
+              meta.style.marginBottom = '12px';
+              meta.textContent = `Closed on ${date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`;
+              article.appendChild(meta);
+            }
+          }
+
+          const excerpt = stripHtml(item?.excerpt?.rendered).slice(0, 200);
+          if(excerpt){
+            const body = document.createElement('p');
+            body.textContent = excerpt;
+            article.appendChild(body);
+          }
+
+          const link = document.createElement('a');
+          link.href = item?.link || '#';
+          link.textContent = 'View process';
+          link.style.color = 'var(--accent)';
+          link.style.fontWeight = '600';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          article.appendChild(link);
+
+          frag.appendChild(article);
+        });
+
+        if(!frag.childNodes.length){
+          setMessage('No closed processes available right now.');
+          return;
+        }
+
+        listEl.appendChild(frag);
+      };
+
+      const renderPagination = () => {
+        paginationEl.innerHTML = '';
+        if(totalPages <= 1){
+          return;
+        }
+
+        const prev = document.createElement('button');
+        prev.type = 'button';
+        prev.textContent = 'Previous';
+        prev.disabled = currentPage <= 1;
+        prev.dataset.page = String(currentPage - 1);
+        paginationEl.appendChild(prev);
+
+        const indicator = document.createElement('span');
+        indicator.className = 'page-indicator';
+        indicator.textContent = `Page ${currentPage} of ${totalPages}`;
+        paginationEl.appendChild(indicator);
+
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.textContent = 'Next';
+        next.disabled = currentPage >= totalPages;
+        next.dataset.page = String(currentPage + 1);
+        paginationEl.appendChild(next);
+      };
+
+      const loadPage = async (page = 1) => {
+        if(loading) return;
+        loading = true;
+        listEl.setAttribute('aria-busy', 'true');
+        setMessage('Loading closed processes…');
+
+        try{
+          if(taxonomyFilter === null){
+            taxonomyFilter = await resolveFilter();
+            if(!taxonomyFilter){
+              setMessage('No closed processes available right now.');
+              return;
+            }
+          }
+
+          const url = `${API_BASE}/posts?per_page=${PER_PAGE}&page=${page}&${taxonomyFilter.param}=${taxonomyFilter.id}&status=publish&_embed`;
+          const res = await fetch(url);
+
+          if(!res.ok){
+            if(res.status === 400 && page > 1){
+              loading = false;
+              return loadPage(1);
+            }
+            throw new Error(`Request failed with status ${res.status}`);
+          }
+
+          const total = parseInt(res.headers.get('X-WP-TotalPages') || '0', 10);
+          totalPages = Number.isNaN(total) ? 0 : total;
+
+          const items = await res.json();
+          if(!Array.isArray(items) || !items.length){
+            setMessage('No closed processes available right now.');
+            return;
+          }
+
+          currentPage = page;
+          renderCards(items);
+          renderPagination();
+        }catch(err){
+          console.error('Failed to load closed processes', err);
+          setMessage('We couldn\'t load closed processes right now. Please try again later.');
+        }finally{
+          listEl.removeAttribute('aria-busy');
+          loading = false;
+        }
+      };
+
+      paginationEl.addEventListener('click', (event) => {
+        const target = event.target;
+        if(!(target instanceof HTMLElement)) return;
+        const pageValue = target.dataset.page;
+        if(!pageValue) return;
+        const page = parseInt(pageValue, 10);
+        if(Number.isNaN(page) || page < 1 || page === currentPage) return;
+        loadPage(page);
+      });
+
+      loadPage(1);
     })();
 
     /* Load latest blog posts */
