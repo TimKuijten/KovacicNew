@@ -10740,6 +10740,12 @@ JS;
                     }
                 }
             }
+            $current_user = wp_get_current_user();
+            $smtp_account = null;
+            if ($current_user instanceof WP_User && $current_user->exists() && function_exists('smtp_helper_get_account_for_email')) {
+                $smtp_account = smtp_helper_get_account_for_email($current_user->user_email);
+            }
+
             $from_email    = sanitize_email($batch['from_email'] ?? '');
             $from_name     = sanitize_text_field($batch['from_name'] ?? '');
             $use_signature = !empty($batch['use_signature']);
@@ -10749,6 +10755,21 @@ JS;
             if (!$from_email) $from_email = get_option('admin_email');
             if (!$from_name)  $from_name  = get_option(self::OPT_FROM_NAME, '');
             if (!$from_name)  $from_name  = get_bloginfo('name');
+
+            $override_signature = '';
+            if ($smtp_account) {
+                $smtp_from_email = sanitize_email($smtp_account['from_email'] ?? '');
+                $smtp_from_name  = sanitize_text_field($smtp_account['from_name'] ?? '');
+                if ($smtp_from_email) {
+                    $from_email = $smtp_from_email;
+                }
+                if ($smtp_from_name) {
+                    $from_name = $smtp_from_name;
+                }
+                if (!empty($smtp_account['signature'])) {
+                    $override_signature = (string) $smtp_account['signature'];
+                }
+            }
 
             $from_cb = null;
             $from_name_cb = null;
@@ -10762,6 +10783,9 @@ JS;
             }
 
             $signature = (string) get_option(self::OPT_SMTP_SIGNATURE, '');
+            if ($override_signature !== '') {
+                $signature = $override_signature;
+            }
             $log = get_option(self::OPT_EMAIL_LOG, []);
             if (!is_array($log)) $log = [];
             $last_error = null;
@@ -10806,7 +10830,14 @@ JS;
 
                 $last_error = null;
                 $att = $attachment ? [$attachment] : [];
+                $active_account = $smtp_account && function_exists('smtp_helper_use_account');
+                if ($active_account) {
+                    smtp_helper_use_account($smtp_account);
+                }
                 $ok = wp_mail($email, $subject, $body, $headers, $att);
+                if ($active_account && function_exists('smtp_helper_clear_account')) {
+                    smtp_helper_clear_account();
+                }
                 $status = $last_error ? 'failed' : 'sent';
                 if ($status === 'sent') {
                     $result['sent']++;
@@ -10860,7 +10891,14 @@ JS;
                 if ($from_email) $headers[] = 'Reply-To: '.$from_name.' <'.$from_email.'>';
                 $last_error = null;
                 $att = $attachment ? [$attachment] : [];
+                $active_account = $smtp_account && function_exists('smtp_helper_use_account');
+                if ($active_account) {
+                    smtp_helper_use_account($smtp_account);
+                }
                 $ok = wp_mail($from_email, $subject, $body, $headers, $att);
+                if ($active_account && function_exists('smtp_helper_clear_account')) {
+                    smtp_helper_clear_account();
+                }
                 $status = $last_error ? 'failed' : 'sent';
                 $entry = [
                     'time'       => current_time('mysql'),
