@@ -1089,7 +1089,7 @@
       const pageSize = 3;
       const siteBase = 'https://kovacictalent.com';
       const apiBase = `${siteBase}/wp-json/wp/v2`;
-      const closedTagSlug = 'closed';
+      const closedCategorySlug = 'closed';
       let posts = [];
       let currentPage = 1;
 
@@ -1146,13 +1146,13 @@
         return response.json();
       };
 
-      const resolveClosedTagId = async () => {
+      const resolveClosedCategoryId = async () => {
         try{
-          const tags = await fetchJson(`${apiBase}/tags?slug=${closedTagSlug}`);
-          const tag = Array.isArray(tags) ? tags.find(t => t && t.slug === closedTagSlug) : null;
-          return tag ? tag.id : null;
+          const categories = await fetchJson(`${apiBase}/categories?slug=${closedCategorySlug}`);
+          const category = Array.isArray(categories) ? categories.find(cat => cat && cat.slug === closedCategorySlug) : null;
+          return category ? category.id : null;
         }catch(err){
-          console.warn('Unable to resolve closed tag id, falling back to slug filtering', err);
+          console.warn('Unable to resolve closed category id, falling back to slug filtering', err);
           return null;
         }
       };
@@ -1160,19 +1160,19 @@
       container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Loading closed processes…</p>';
 
       try{
-        const closedTagId = await resolveClosedTagId();
-        const query = closedTagId
-          ? `${apiBase}/posts?per_page=100&_embed&tags=${closedTagId}`
+        const closedCategoryId = await resolveClosedCategoryId();
+        const query = closedCategoryId
+          ? `${apiBase}/posts?per_page=100&_embed&categories=${closedCategoryId}`
           : `${apiBase}/posts?per_page=100&_embed`;
         const data = await fetchJson(query);
 
         posts = Array.isArray(data) ? data.filter(post => {
           if(!post || !post.title) return false;
-          if(closedTagId){
-            return Array.isArray(post.tags) && post.tags.includes(closedTagId);
+          if(closedCategoryId){
+            return Array.isArray(post.categories) && post.categories.includes(closedCategoryId);
           }
           const termGroups = (post._embedded && post._embedded['wp:term']) || [];
-          return termGroups.some(group => Array.isArray(group) && group.some(term => term && term.taxonomy === 'post_tag' && term.slug === closedTagSlug));
+          return termGroups.some(group => Array.isArray(group) && group.some(term => term && term.taxonomy === 'category' && term.slug === closedCategorySlug));
         }) : [];
 
         render();
