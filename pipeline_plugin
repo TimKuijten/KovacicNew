@@ -1348,7 +1348,7 @@ JS;
         exit;
     }
 
-    private function build_cv_filename($post_id, $attach_id, $path, $uploaded_dt, array &$used) {
+    private function build_cv_filename($post_id, $attach_id, $path, $uploaded_dt, array &$used, $source_hint = '') {
         $title = get_the_title($post_id);
         if ($title === '') {
             $first = get_post_meta($post_id, 'kvt_first_name', true);
@@ -1367,6 +1367,12 @@ JS;
             $base .= '-' . $uploaded_dt->format('Ymd');
         }
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if ($ext === '' && $source_hint !== '') {
+            $hint_path = wp_parse_url($source_hint, PHP_URL_PATH);
+            if ($hint_path) {
+                $ext = strtolower(pathinfo($hint_path, PATHINFO_EXTENSION));
+            }
+        }
         if ($ext === '') {
             $mime = get_post_mime_type($attach_id);
             $map = [
@@ -1378,6 +1384,11 @@ JS;
                 $ext = $map[$mime];
             }
         }
+        if ($ext === '' && $source_hint !== '') {
+            if (preg_match('/\.(pdf|docx?|rtf)($|\?)/i', $source_hint, $m)) {
+                $ext = strtolower($m[1]);
+            }
+        }
         $filename = $base . ($ext ? '.' . $ext : '');
         $counter = 2;
         while (isset($used[$filename])) {
@@ -1386,6 +1397,46 @@ JS;
         }
         $used[$filename] = true;
         return $filename;
+    }
+
+    private function resolve_cv_file_path($post_id, $attach_id, $url, array &$temp_files) {
+        $path = '';
+        if ($attach_id) {
+            $candidate_path = get_attached_file($attach_id);
+            if ($candidate_path && file_exists($candidate_path)) {
+                return $candidate_path;
+            }
+        }
+        $url = trim((string) $url);
+        if ($url === '') {
+            return '';
+        }
+        $parsed = wp_parse_url($url);
+        if (is_array($parsed) && !empty($parsed['path'])) {
+            $local = ABSPATH . ltrim($parsed['path'], '/');
+            if (file_exists($local)) {
+                return $local;
+            }
+        }
+        if (!is_array($parsed) || !isset($parsed['scheme']) || !in_array($parsed['scheme'], ['http', 'https'], true)) {
+            return '';
+        }
+        if (!function_exists('download_url')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        $downloaded = download_url($url);
+        if (is_wp_error($downloaded)) {
+            $maybe_file = $downloaded->get_error_data('file');
+            if ($maybe_file && file_exists($maybe_file)) {
+                @unlink($maybe_file);
+            }
+            return '';
+        }
+        if (!file_exists($downloaded)) {
+            return '';
+        }
+        $temp_files[] = $downloaded;
+        return $downloaded;
     }
 
     private function stream_cv_archive($start, $end, $download_name) {
@@ -1408,11 +1459,13 @@ JS;
             @unlink($tmp);
             $this->cv_download_redirect('ziperror');
         }
+        $temp_files = [];
         $query = new WP_Query([
             'post_type'      => self::CPT,
             'post_status'    => 'any',
             'posts_per_page' => -1,
             'fields'         => 'ids',
+            'no_found_rows'  => true,
             'meta_query'     => [
                 'relation' => 'OR',
                 [
@@ -1422,6 +1475,16 @@ JS;
                 [
                     'key'     => 'cv_attachment_id',
                     'compare' => 'EXISTS',
+                ],
+                [
+                    'key'     => 'kvt_cv_url',
+                    'value'   => '',
+                    'compare' => '!=',
+                ],
+                [
+                    'key'     => 'cv_url',
+                    'value'   => '',
+                    'compare' => '!=',
                 ],
             ],
         ]);
@@ -1437,20 +1500,22 @@ JS;
                 continue;
             }
             $attach_id = (int) $this->meta_get_compat($pid, 'kvt_cv_attachment_id', ['cv_attachment_id']);
-            if (!$attach_id) {
+            $url = $this->meta_get_compat($pid, 'kvt_cv_url', ['cv_url']);
+            $path = $this->resolve_cv_file_path($pid, $attach_id, $url, $temp_files);
+            if ($path === '') {
                 continue;
             }
-            $path = get_attached_file($attach_id);
-            if (!$path || !file_exists($path)) {
+            if (!$zip->addFile($path, $this->build_cv_filename($pid, $attach_id, $path, $uploaded_dt, $used, $url))) {
                 continue;
             }
-            $filename = $this->build_cv_filename($pid, $attach_id, $path, $uploaded_dt, $used);
-            $zip->addFile($path, $filename);
             $added++;
         }
         $zip->close();
         if ($added === 0) {
             @unlink($tmp);
+            foreach ($temp_files as $temp_file) {
+                @unlink($temp_file);
+            }
             $this->cv_download_redirect('empty');
         }
         if (substr($download_name, -4) !== '.zip') {
@@ -1462,6 +1527,9 @@ JS;
         header('Content-Length: ' . filesize($tmp));
         readfile($tmp);
         @unlink($tmp);
+        foreach ($temp_files as $temp_file) {
+            @unlink($temp_file);
+        }
         exit;
     }
 
