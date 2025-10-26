@@ -1401,13 +1401,18 @@ JS;
 
     private function resolve_cv_file_path($post_id, $attach_id, $url, array &$temp_files) {
         $path = '';
+        $attachment_url = '';
         if ($attach_id) {
             $candidate_path = get_attached_file($attach_id);
             if ($candidate_path && file_exists($candidate_path)) {
                 return $candidate_path;
             }
+            $attachment_url = wp_get_attachment_url($attach_id);
+            if (!$attachment_url) {
+                $attachment_url = get_post_field('guid', $attach_id);
+            }
         }
-        $url = trim((string) $url);
+        $url = trim((string) ($url ?: $attachment_url));
         if ($url === '') {
             return '';
         }
