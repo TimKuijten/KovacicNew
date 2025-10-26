@@ -1414,8 +1414,13 @@ JS;
             'posts_per_page' => -1,
             'fields'         => 'ids',
             'meta_query'     => [
+                'relation' => 'OR',
                 [
                     'key'     => 'kvt_cv_attachment_id',
+                    'compare' => 'EXISTS',
+                ],
+                [
+                    'key'     => 'cv_attachment_id',
                     'compare' => 'EXISTS',
                 ],
             ],
@@ -1423,14 +1428,15 @@ JS;
         $added = 0;
         $used = [];
         foreach ($query->posts as $pid) {
-            $uploaded_dt = $this->parse_cv_meta_date(get_post_meta($pid, 'kvt_cv_uploaded', true));
+            $uploaded_meta = $this->meta_get_compat($pid, 'kvt_cv_uploaded', ['cv_uploaded']);
+            $uploaded_dt = $this->parse_cv_meta_date($uploaded_meta);
             if ($start instanceof DateTimeInterface && (!$uploaded_dt || $uploaded_dt < $start)) {
                 continue;
             }
             if ($end instanceof DateTimeInterface && (!$uploaded_dt || $uploaded_dt > $end)) {
                 continue;
             }
-            $attach_id = (int) get_post_meta($pid, 'kvt_cv_attachment_id', true);
+            $attach_id = (int) $this->meta_get_compat($pid, 'kvt_cv_attachment_id', ['cv_attachment_id']);
             if (!$attach_id) {
                 continue;
             }
