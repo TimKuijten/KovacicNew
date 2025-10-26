@@ -194,9 +194,11 @@ class Kovacic_Pipeline_Visualizer {
         add_action('kvt_refresh_worker',               [$this, 'cron_refresh_worker']);
         add_action('kvt_update_worker',                [$this, 'cron_update_worker']);
 
-        // Export
+        // Export & downloads
         add_action('admin_post_kvt_export',          [$this, 'handle_export']);
         add_action('admin_post_kvt_delete_board',   [$this, 'handle_delete_board']);
+        add_action('admin_post_kvt_download_cvs',    [$this, 'handle_download_cvs']);
+        add_action('admin_post_kvt_download_all_cvs',[$this, 'handle_download_all_cvs']);
 
         // Follow-up reminders
         add_action('init',                          [$this, 'schedule_followup_cron']);
@@ -403,8 +405,18 @@ cv_url|CV (URL)
         sort($skill_opts);
         $sector_opts = array_keys($sector_opts);
         sort($sector_opts);
+        $download_notice = isset($_GET['kvt_cv_download']) ? sanitize_text_field(wp_unslash($_GET['kvt_cv_download'])) : '';
         ?>
         <div class="wrap kvt">
+          <?php if ($download_notice === 'empty'): ?>
+            <div class="notice notice-warning"><p><?php esc_html_e('No CVs were found for the selected date range.', 'kovacic'); ?></p></div>
+          <?php elseif ($download_notice === 'invalid'): ?>
+            <div class="notice notice-error"><p><?php esc_html_e('The selected dates are not valid. Please adjust the range and try again.', 'kovacic'); ?></p></div>
+          <?php elseif ($download_notice === 'ziperror'): ?>
+            <div class="notice notice-error"><p><?php esc_html_e('The CV archive could not be generated. Please try again later.', 'kovacic'); ?></p></div>
+          <?php elseif ($download_notice === 'tempfile'): ?>
+            <div class="notice notice-error"><p><?php esc_html_e('Temporary file could not be created for the download.', 'kovacic'); ?></p></div>
+          <?php endif; ?>
           <header class="k-header">
             <div>
               <h1 class="k-title"><?php esc_html_e('Seguimiento de Candidatos', 'kovacic'); ?></h1>
@@ -416,6 +428,24 @@ cv_url|CV (URL)
               <span class="k-pill k-pill--blue"><?php esc_html_e('Ofertas', 'kovacic'); ?>: <span id="stat-offers">0</span></span>
             </div>
           </header>
+          <div class="kvt-download-tools">
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="kvt-download-form">
+              <input type="hidden" name="action" value="kvt_download_cvs">
+              <?php wp_nonce_field('kvt_download_cvs'); ?>
+              <label for="kvt-cv-from"><?php esc_html_e('From', 'kovacic'); ?>
+                <input type="date" id="kvt-cv-from" name="kvt_cv_from">
+              </label>
+              <label for="kvt-cv-to"><?php esc_html_e('Until', 'kovacic'); ?>
+                <input type="date" id="kvt-cv-to" name="kvt_cv_to">
+              </label>
+              <button type="submit" class="button button-secondary"><?php esc_html_e('Download CVs', 'kovacic'); ?></button>
+            </form>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="kvt-download-form">
+              <input type="hidden" name="action" value="kvt_download_all_cvs">
+              <?php wp_nonce_field('kvt_download_all_cvs'); ?>
+              <button type="submit" class="button"><?php esc_html_e('Download all CVs', 'kovacic'); ?></button>
+            </form>
+          </div>
           <nav class="k-tabs" role="tablist">
             <div class="k-tab" aria-selected="false"><?php esc_html_e('Detalles', 'kovacic'); ?></div>
             <div class="k-tab" aria-selected="true"><?php esc_html_e('ATS', 'kovacic'); ?></div>
@@ -478,6 +508,12 @@ cv_url|CV (URL)
         if (strpos($hook, 'kvt-tracker') === false) return;
 
         wp_enqueue_style('kvt-tracker', plugins_url('css/tracker.css', __FILE__), [], '1.0');
+        $extra_css = '.kvt-download-tools{margin:16px 0;display:flex;flex-wrap:wrap;gap:12px;}'
+            .'.kvt-download-form{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;}'
+            .'.kvt-download-form label{display:flex;flex-direction:column;font-weight:600;}'
+            .'.kvt-download-form label input{margin-top:4px;}'
+            .'.kvt-download-form .button{margin-top:auto;}';
+        wp_add_inline_style('kvt-tracker', $extra_css);
 
         $js = <<<'JS'
 (function(){
@@ -901,6 +937,34 @@ JS;
         exit;
     }
 
+    public function handle_download_cvs() {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        check_admin_referer('kvt_download_cvs');
+        $from_raw = isset($_POST['kvt_cv_from']) ? sanitize_text_field(wp_unslash($_POST['kvt_cv_from'])) : '';
+        $to_raw   = isset($_POST['kvt_cv_to']) ? sanitize_text_field(wp_unslash($_POST['kvt_cv_to'])) : '';
+        $start = $this->parse_admin_date_field($from_raw, false);
+        $end   = $this->parse_admin_date_field($to_raw, true);
+        if ($start && $end && $start > $end) {
+            $this->cv_download_redirect('invalid');
+        }
+        $label = 'kovacic-cvs';
+        if ($start || $end) {
+            $label .= '-' . ($start ? $start->format('Ymd') : 'start');
+            $label .= '-' . ($end ? $end->format('Ymd') : 'end');
+        }
+        $this->stream_cv_archive($start, $end, $label);
+    }
+
+    public function handle_download_all_cvs() {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        check_admin_referer('kvt_download_all_cvs');
+        $this->stream_cv_archive(null, null, 'kovacic-cvs-all');
+    }
+
     /* Proceso -> Cliente term meta */
     public function process_add_fields($taxonomy) {
         $clients = get_terms(['taxonomy'=>self::TAX_CLIENT,'hide_empty'=>false]);
@@ -1220,6 +1284,179 @@ JS;
         if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $val)) return $val;
         $ts = strtotime(str_replace('/', '-', $val));
         return $ts ? date('d/m/Y',$ts) : $val;
+    }
+
+    private function parse_admin_date_field($value, $end_of_day = false) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        try {
+            if (function_exists('wp_timezone')) {
+                $tz = wp_timezone();
+            } else {
+                $tz_name = function_exists('wp_timezone_string') ? wp_timezone_string() : 'UTC';
+                $tz = new DateTimeZone($tz_name ?: 'UTC');
+            }
+        } catch (Exception $e) {
+            $tz = new DateTimeZone('UTC');
+        }
+        try {
+            $dt = new DateTimeImmutable($value, $tz);
+        } catch (Exception $e) {
+            return null;
+        }
+        return $end_of_day ? $dt->setTime(23, 59, 59) : $dt->setTime(0, 0, 0);
+    }
+
+    private function parse_cv_meta_date($value) {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        try {
+            if (function_exists('wp_timezone')) {
+                $tz = wp_timezone();
+            } else {
+                $tz_name = function_exists('wp_timezone_string') ? wp_timezone_string() : 'UTC';
+                $tz = new DateTimeZone($tz_name ?: 'UTC');
+            }
+        } catch (Exception $e) {
+            $tz = new DateTimeZone('UTC');
+        }
+        $formats = ['d-m-Y', 'd/m/Y', 'Y-m-d', 'Y/m/d'];
+        foreach ($formats as $fmt) {
+            $dt = DateTimeImmutable::createFromFormat($fmt, $value, $tz);
+            if ($dt instanceof DateTimeImmutable) {
+                return $dt->setTime(0, 0, 0);
+            }
+        }
+        $ts = strtotime($value);
+        if ($ts) {
+            $dt = new DateTimeImmutable('@' . $ts);
+            return $dt->setTimezone($tz)->setTime(0, 0, 0);
+        }
+        return null;
+    }
+
+    private function cv_download_redirect($code) {
+        $ref = wp_get_referer();
+        if (!$ref || strpos($ref, 'admin.php?page=kvt-tracker') === false) {
+            $ref = admin_url('admin.php?page=kvt-tracker');
+        }
+        wp_safe_redirect(add_query_arg('kvt_cv_download', $code, $ref));
+        exit;
+    }
+
+    private function build_cv_filename($post_id, $attach_id, $path, $uploaded_dt, array &$used) {
+        $title = get_the_title($post_id);
+        if ($title === '') {
+            $first = get_post_meta($post_id, 'kvt_first_name', true);
+            $last  = get_post_meta($post_id, 'kvt_last_name', true);
+            $title = trim($first . ' ' . $last);
+        }
+        if ($title === '') {
+            $title = 'candidate';
+        }
+        $base = sanitize_title($title);
+        if ($base === '') {
+            $base = 'candidate';
+        }
+        $base .= '-' . intval($post_id);
+        if ($uploaded_dt instanceof DateTimeInterface) {
+            $base .= '-' . $uploaded_dt->format('Ymd');
+        }
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if ($ext === '') {
+            $mime = get_post_mime_type($attach_id);
+            $map = [
+                'application/pdf'                                                     => 'pdf',
+                'application/msword'                                                  => 'doc',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            ];
+            if (isset($map[$mime])) {
+                $ext = $map[$mime];
+            }
+        }
+        $filename = $base . ($ext ? '.' . $ext : '');
+        $counter = 2;
+        while (isset($used[$filename])) {
+            $filename = $base . '-' . $counter . ($ext ? '.' . $ext : '');
+            $counter++;
+        }
+        $used[$filename] = true;
+        return $filename;
+    }
+
+    private function stream_cv_archive($start, $end, $download_name) {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        if (!class_exists('ZipArchive')) {
+            $this->cv_download_redirect('ziperror');
+        }
+        if (!function_exists('wp_tempnam')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+        set_time_limit(0);
+        $tmp = wp_tempnam('kvt_cvs');
+        if (!$tmp) {
+            $this->cv_download_redirect('tempfile');
+        }
+        $zip = new ZipArchive();
+        if ($zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            @unlink($tmp);
+            $this->cv_download_redirect('ziperror');
+        }
+        $query = new WP_Query([
+            'post_type'      => self::CPT,
+            'post_status'    => 'any',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'     => 'kvt_cv_attachment_id',
+                    'compare' => 'EXISTS',
+                ],
+            ],
+        ]);
+        $added = 0;
+        $used = [];
+        foreach ($query->posts as $pid) {
+            $uploaded_dt = $this->parse_cv_meta_date(get_post_meta($pid, 'kvt_cv_uploaded', true));
+            if ($start instanceof DateTimeInterface && (!$uploaded_dt || $uploaded_dt < $start)) {
+                continue;
+            }
+            if ($end instanceof DateTimeInterface && (!$uploaded_dt || $uploaded_dt > $end)) {
+                continue;
+            }
+            $attach_id = (int) get_post_meta($pid, 'kvt_cv_attachment_id', true);
+            if (!$attach_id) {
+                continue;
+            }
+            $path = get_attached_file($attach_id);
+            if (!$path || !file_exists($path)) {
+                continue;
+            }
+            $filename = $this->build_cv_filename($pid, $attach_id, $path, $uploaded_dt, $used);
+            $zip->addFile($path, $filename);
+            $added++;
+        }
+        $zip->close();
+        if ($added === 0) {
+            @unlink($tmp);
+            $this->cv_download_redirect('empty');
+        }
+        if (substr($download_name, -4) !== '.zip') {
+            $download_name .= '.zip';
+        }
+        nocache_headers();
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' . sanitize_file_name($download_name) . '"');
+        header('Content-Length: ' . filesize($tmp));
+        readfile($tmp);
+        @unlink($tmp);
+        exit;
     }
 
     private function current_ats_role() {
