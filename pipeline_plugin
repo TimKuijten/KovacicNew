@@ -2386,7 +2386,7 @@ JS;
                           <div id="kvt_board_proc_info" class="kvt-selected-info" style="display:none;"></div>
                           <div class="kvt-toolbar">
                             <label>Buscar
-                              <input type="search" id="kvt_board_proc_search" placeholder="Buscar por nombre">
+                              <input type="search" id="kvt_board_proc_search" class="kvt-input kvt-process-search" placeholder="Buscar por nombre">
                             </label>
                             <button type="button" class="kvt-btn" id="kvt_add_process_btn">Nuevo</button>
                           </div>
@@ -2857,7 +2857,7 @@ JS;
                 <div class="kvt-head">
                   <div class="kvt-toolbar">
                     <label>Buscar
-                      <input type="search" id="kvt_proc_search" placeholder="Buscar por nombre">
+                      <input type="search" id="kvt_proc_search" class="kvt-input kvt-process-search" placeholder="Buscar por nombre">
                     </label>
                     <label>Estado
                       <select id="kvt_proc_status">
@@ -3154,6 +3154,7 @@ JS;
           .kvt-cv-link{font-size:18px;color:#0A212E;text-decoration:none}
           .kvt-cv-link:hover{color:#334155}
           .kvt-input{width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:8px}
+          .kvt-process-search{min-width:220px;max-width:420px}
         .kvt-card .kvt-notes{margin-top:8px}
         .kvt-card .kvt-notes textarea{width:100%;min-height:80px;padding:8px;border:1px solid #e5e7eb;border-radius:8px}
         .kvt-card .kvt-public-notes{margin-top:8px}
@@ -6736,7 +6737,7 @@ function kvtInit(){
     } else if(target === processesList){
       value = procSearchInput && procSearchInput.value ? procSearchInput.value : '';
     }
-    return value.trim().toLocaleLowerCase();
+    return value.trim();
   }
 
   function renderProcessTargets(targets, sourceItems){
@@ -6746,8 +6747,18 @@ function kvtInit(){
     const statuses = {active:'Activo',completed:'Completado',closed:'Cancelado',discarded:'Descartado'};
     targets.filter(Boolean).forEach(t=>{
       const query = getProcessSearchQuery(t);
-      const filtered = query
-        ? baseItems.filter(p=> (p.name||'').toLocaleLowerCase().includes(query))
+      const normalized = query.toLocaleLowerCase();
+      const filtered = normalized
+        ? baseItems.filter(p=>{
+            const name = (p.name||'').toLocaleLowerCase();
+            const client = (p.client||'').toLocaleLowerCase();
+            const desc = (p.description||'').toLocaleLowerCase();
+            const contact = (p.contact_name||'').toLocaleLowerCase();
+            return name.includes(normalized)
+              || client.includes(normalized)
+              || desc.includes(normalized)
+              || contact.includes(normalized);
+          })
         : baseItems;
       const html = filtered.length
         ? filtered.map(p=>{
@@ -6813,6 +6824,8 @@ function kvtInit(){
     const cl = procClientFilter ? procClientFilter.value : '';
     if(st) params.set('status', st);
     if(cl) params.set('client', cl);
+    const searchQuery = target ? getProcessSearchQuery(target) : '';
+    if(searchQuery) params.set('search', searchQuery);
     fetch(KVT_AJAX,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:params.toString()})
       .then(r=>r.json()).then(j=>{
         if(!j.success) return alert('No se pudo cargar la lista.');
@@ -6841,9 +6854,13 @@ function kvtInit(){
             }
           });
         }
-        cachedProcessItems = Array.isArray(j.data.items) ? j.data.items.slice() : [];
+        const items = Array.isArray(j.data.items) ? j.data.items : [];
+        const shouldCache = !target || !searchQuery;
+        if(shouldCache){
+          cachedProcessItems = items.slice();
+        }
         const targets = target ? [target] : [processesList, boardProcessesList].filter(Boolean);
-        renderProcessTargets(targets, cachedProcessItems);
+        renderProcessTargets(targets, shouldCache ? cachedProcessItems : items);
       });
   }
   // Create candidate modal
@@ -9244,6 +9261,12 @@ JS;
         check_ajax_referer('kvt_nonce');
         $status_filter = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
         $client_filter = isset($_POST['client']) ? intval($_POST['client']) : 0;
+        $search        = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        $use_mb        = function_exists('mb_strtolower');
+        $search_lc     = '';
+        if ($search !== '') {
+            $search_lc = $use_mb ? mb_strtolower($search, 'UTF-8') : strtolower($search);
+        }
         $terms = get_terms(['taxonomy'=>self::TAX_PROCESS,'hide_empty'=>false]);
         $items = [];
         $statuses = array_values(array_filter(array_map('trim', explode("\n", get_option(self::OPT_STATUSES, '')))));
@@ -9269,6 +9292,16 @@ JS;
                 if ($status_filter !== 'discarded') continue;
             }
             if ($status_filter && $status !== $status_filter) continue;
+            $contact_name  = get_term_meta($t->term_id,'contact_name',true);
+            $contact_email = get_term_meta($t->term_id,'contact_email',true);
+            $description   = $t->description;
+            if ($search_lc !== '') {
+                $haystack = $t->name . ' ' . $client_name . ' ' . $description . ' ' . $contact_name . ' ' . $contact_email;
+                $hay_lc   = $use_mb ? mb_strtolower($haystack, 'UTF-8') : strtolower($haystack);
+                if (strpos($hay_lc, $search_lc) === false) {
+                    continue;
+                }
+            }
             $end     = get_term_meta($t->term_id,'kvt_process_end',true);
             $start_ts = $created ? strtotime($created) : 0;
             $end_ts   = ($status === 'active') ? current_time('timestamp') : ($end ? strtotime($end) : current_time('timestamp'));
@@ -9309,9 +9342,9 @@ JS;
                 'name' => $t->name,
                 'client_id' => $client_id,
                 'client' => $client_name,
-                'contact_name'  => get_term_meta($t->term_id,'contact_name',true),
-                'contact_email' => get_term_meta($t->term_id,'contact_email',true),
-                'description'   => $t->description,
+                'contact_name'  => $contact_name,
+                'contact_email' => $contact_email,
+                'description'   => $description,
                 'meetings'      => get_term_meta($t->term_id,'kvt_process_meetings',true),
                 'creator'       => $creator,
                 'created'       => $created_fmt,
