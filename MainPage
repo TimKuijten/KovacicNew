@@ -38,6 +38,9 @@
     .btn-ghost{border:2px solid #111;color:#111}
     .btn-ghost:hover{background:#111;color:#fff}
     .pill{display:inline-flex;align-items:center;gap:.5rem;color:#0f172a;background:linear-gradient(90deg,#eafcf8,#fff);border:1px solid #d9f4ee;padding:.35rem .7rem;border-radius:999px;font-weight:700;font-size:.78rem}
+    .pager{display:flex;justify-content:center;align-items:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap}
+    .pager .muted{margin:0;font-weight:600}
+    .pager .btn[disabled]{opacity:.5;cursor:not-allowed;pointer-events:none}
     .dot{width:8px;height:8px;border-radius:999px;background:#d1d5db}
     .dot.is-active{background:var(--accent)}
     /* Navbar */
@@ -788,14 +791,26 @@
   <section id="processes" class="container">
     <h2 class="section-title"><span class="values-title">Latest processes</span></h2>
     <p class="lead">The latest published processes</p>
-<div style="margin:1rem 0; text-align:center;">
-  <a class="btn btn-primary" href="https://kovacictalent.com/procesos-activos/">More opportunities</a>
-</div>
+    <div style="margin:1rem 0; text-align:center;">
+      <a class="btn btn-primary" href="https://kovacictalent.com/procesos-activos/">More opportunities</a>
+    </div>
 
     <div id="blog-posts" class="grid g-3"></div>
   </section>
 
 </section>
+
+  <!-- CLOSED PROCESSES -->
+  <section id="closed-processes" class="container">
+    <h2 class="section-title"><span class="values-title">Closed processes</span></h2>
+    <p class="lead">Explore recently completed searches from our team.</p>
+    <div id="closed-posts-grid" class="grid g-3" aria-live="polite"></div>
+    <div class="pager" data-closed-pagination hidden>
+      <button class="btn btn-ghost" type="button" data-closed-prev disabled>Previous</button>
+      <span class="muted" data-closed-status>Page 1 of 1</span>
+      <button class="btn btn-primary" type="button" data-closed-next>Next</button>
+    </div>
+  </section>
 
 
   <!-- CONTACT / CTA -->
@@ -1084,6 +1099,109 @@
       }catch(err){
         console.error('Failed to load posts', err);
       }
+    })();
+
+    /* Load closed blog posts with pagination */
+    (async function(){
+      const grid = document.getElementById('closed-posts-grid');
+      if(!grid) return;
+      const pager = document.querySelector('[data-closed-pagination]');
+      const prevBtn = pager ? pager.querySelector('[data-closed-prev]') : null;
+      const nextBtn = pager ? pager.querySelector('[data-closed-next]') : null;
+      const status = pager ? pager.querySelector('[data-closed-status]') : null;
+      const POSTS_PER_PAGE = 3;
+      let posts = [];
+      let currentPage = 1;
+
+      const totalPages = () => Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+
+      const renderPage = () => {
+        const total = totalPages();
+        currentPage = Math.min(Math.max(currentPage, 1), total);
+        grid.innerHTML = '';
+
+        if(!posts.length){
+          grid.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">No closed processes to display right now.</p>';
+          if(pager) pager.hidden = true;
+          return;
+        }
+
+        const start = (currentPage - 1) * POSTS_PER_PAGE;
+        const pagePosts = posts.slice(start, start + POSTS_PER_PAGE);
+
+        pagePosts.forEach(p => {
+          const article = document.createElement('article');
+          article.className = 'card';
+          const rawExcerpt = p && p.excerpt && p.excerpt.rendered ? p.excerpt.rendered.replace(/<[^>]+>/g,'').trim() : '';
+          const excerpt = rawExcerpt.length > 180 ? `${rawExcerpt.slice(0,177).trimEnd()}…` : rawExcerpt;
+          article.innerHTML = `
+            <h3>${p.title.rendered}</h3>
+            <p>${excerpt}</p>
+            <a href="${p.link}" style="color:var(--accent);font-weight:600;">View process</a>
+          `;
+          grid.appendChild(article);
+        });
+
+        if(pager){
+          const hidePager = total <= 1;
+          pager.hidden = hidePager;
+          if(!hidePager && status){
+            status.textContent = `Page ${currentPage} of ${total}`;
+          }
+          if(prevBtn) prevBtn.disabled = currentPage === 1;
+          if(nextBtn) nextBtn.disabled = currentPage === total;
+        }
+      };
+
+      const showMessage = message => {
+        grid.innerHTML = `<p class="muted" style="grid-column:1/-1;text-align:center;">${message}</p>`;
+        if(pager) pager.hidden = true;
+      };
+
+      const loadPosts = async () => {
+        try{
+          showMessage('Loading closed processes…');
+          const tagRes = await fetch('https://kovacictalent.com/wp-json/wp/v2/tags?slug=closed');
+          if(!tagRes.ok) throw new Error(`Tag lookup failed: ${tagRes.status}`);
+          const tags = await tagRes.json();
+          if(!Array.isArray(tags) || !tags.length){
+            posts = [];
+            renderPage();
+            return;
+          }
+
+          const tagId = tags[0].id;
+          const postsRes = await fetch(`https://kovacictalent.com/wp-json/wp/v2/posts?per_page=100&tags=${tagId}&_embed`);
+          if(!postsRes.ok) throw new Error(`Posts lookup failed: ${postsRes.status}`);
+          posts = await postsRes.json();
+          currentPage = 1;
+          renderPage();
+        }catch(err){
+          console.error('Failed to load closed posts', err);
+          showMessage('Unable to load closed processes right now. Please try again later.');
+        }
+      };
+
+      if(prevBtn){
+        prevBtn.addEventListener('click', () => {
+          if(currentPage > 1){
+            currentPage -= 1;
+            renderPage();
+          }
+        });
+      }
+
+      if(nextBtn){
+        nextBtn.addEventListener('click', () => {
+          const total = totalPages();
+          if(currentPage < total){
+            currentPage += 1;
+            renderPage();
+          }
+        });
+      }
+
+      await loadPosts();
     })();
   </script>
   <script>
