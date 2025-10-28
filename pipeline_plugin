@@ -2384,7 +2384,12 @@ JS;
                       <div id="kvt_board_tab_processes" class="kvt-tab-panel">
                         <div class="kvt-head">
                           <div id="kvt_board_proc_info" class="kvt-selected-info" style="display:none;"></div>
-                          <button type="button" class="kvt-btn" id="kvt_add_process_btn">Nuevo</button>
+                          <div class="kvt-toolbar">
+                            <label>Buscar
+                              <input type="search" id="kvt_board_proc_search" placeholder="Buscar por nombre">
+                            </label>
+                            <button type="button" class="kvt-btn" id="kvt_add_process_btn">Nuevo</button>
+                          </div>
                         </div>
                         <div id="kvt_board_processes_list" class="kvt-list"></div>
                       </div>
@@ -2851,6 +2856,9 @@ JS;
               <div id="kvt_tab_processes" class="kvt-tab-panel kvt-base">
                 <div class="kvt-head">
                   <div class="kvt-toolbar">
+                    <label>Buscar
+                      <input type="search" id="kvt_proc_search" placeholder="Buscar por nombre">
+                    </label>
                     <label>Estado
                       <select id="kvt_proc_status">
                         <option value="">Todos</option>
@@ -4428,8 +4436,10 @@ function kvtInit(){
   const boardTabProcesses = el('#kvt_board_tab_processes');
   const boardClientsList = el('#kvt_board_clients_list');
   const boardProcessesList = el('#kvt_board_processes_list');
+  const procSearchInput = el('#kvt_proc_search', modal);
   const procStatusFilter = el('#kvt_proc_status');
   const procClientFilter = el('#kvt_proc_client');
+  const boardProcSearchInput = el('#kvt_board_proc_search');
   const aiInput = el('#kvt_ai_input', modal);
   const aiBtn = el('#kvt_ai_search', modal);
   const aiResults = el('#kvt_ai_results', modal);
@@ -4446,6 +4456,8 @@ function kvtInit(){
   const keywordBoardCountry = el('#kvt_keyword_board_country');
   const aiCountry = el('#kvt_ai_country', modal);
   const aiBoardCountry = el('#kvt_ai_board_country');
+
+  let cachedProcessItems = [];
 
   function renderCountrySelect(sel){
     if(!sel) return;
@@ -4528,6 +4540,14 @@ function kvtInit(){
   boardTabs.forEach(b=>b.addEventListener('click', ()=>switchBoardTab(b.dataset.target)));
   procStatusFilter && procStatusFilter.addEventListener('change', ()=>listProcesses());
   procClientFilter && procClientFilter.addEventListener('change', ()=>listProcesses());
+  procSearchInput && procSearchInput.addEventListener('input', ()=>{
+    if(!cachedProcessItems.length){ listProcesses(processesList); return; }
+    renderProcessTargets([processesList]);
+  });
+  boardProcSearchInput && boardProcSearchInput.addEventListener('input', ()=>{
+    if(!cachedProcessItems.length){ listProcesses(boardProcessesList); return; }
+    renderProcessTargets([boardProcessesList]);
+  });
 
   function openModal(tab='candidates', select=false){
     modalSelectMode = select;
@@ -6709,6 +6729,82 @@ function kvtInit(){
       });
   }
 
+  function getProcessSearchQuery(target){
+    let value = '';
+    if(target === boardProcessesList){
+      value = boardProcSearchInput && boardProcSearchInput.value ? boardProcSearchInput.value : '';
+    } else if(target === processesList){
+      value = procSearchInput && procSearchInput.value ? procSearchInput.value : '';
+    }
+    return value.trim().toLocaleLowerCase();
+  }
+
+  function renderProcessTargets(targets, sourceItems){
+    const baseItems = Array.isArray(sourceItems)
+      ? sourceItems
+      : (Array.isArray(cachedProcessItems) ? cachedProcessItems : []);
+    const statuses = {active:'Activo',completed:'Completado',closed:'Cancelado',discarded:'Descartado'};
+    targets.filter(Boolean).forEach(t=>{
+      const query = getProcessSearchQuery(t);
+      const filtered = query
+        ? baseItems.filter(p=> (p.name||'').toLocaleLowerCase().includes(query))
+        : baseItems;
+      const html = filtered.length
+        ? filtered.map(p=>{
+            const subs=[];
+            if(p.client) subs.push('Empresa: '+esc(p.client));
+            subs.push('Creado por '+esc(p.creator||'')+(p.created?' el '+esc(p.created):''));
+            subs.push('Candidatos: '+(p.candidates||0)+' / Etapa: '+esc(p.job_stage||''));
+            const subHtml = '<br><span class="kvt-sub">'+subs.join(' / ')+'</span>';
+            const sel = p.can_edit
+              ? '<select class="kvt-process-status" data-id="'+escAttr(p.id)+'">'
+                + Object.keys(statuses).map(s=>'<option value="'+s+'"'+(p.status===s?' selected':'')+'>'+statuses[s]+'</option>').join('')
+                + '</select>'
+              : '<span class="kvt-status-label">'+(statuses[p.status]||'')+'</span>';
+            const days = '<span class="kvt-active-days">Activo '+p.days+' días</span>';
+            const delBtn = p.can_delete ? '<button type="button" class="kvt-delete-process dashicons dashicons-trash" data-id="'+escAttr(p.id)+'" aria-label="Eliminar"></button>' : '';
+            const editBtn = p.can_edit ? '<button type="button" class="kvt-btn kvt-edit-process" data-id="'+escAttr(p.id)+'" data-name="'+escAttr(p.name||'')+'" data-client-id="'+escAttr(p.client_id||'')+'" data-contact-name="'+escAttr(p.contact_name||'')+'" data-contact-email="'+escAttr(p.contact_email||'')+'" data-desc="'+escAttr(p.description||'')+'" data-meetings="'+escAttr(p.meetings||'')+'" data-recruiters="'+escAttr(Array.isArray(p.recruiters)?p.recruiters.join(','):'')+'">Editar</button>' : '';
+            const warn = p.needs_review ? '<span class="kvt-flag">!</span>' : '';
+            return '<div class="kvt-row kvt-process-row" data-id="'+escAttr(p.id)+'" data-client="'+escAttr(p.client_id||'')+'">'
+              + '<div><span class="kvt-name">'+warn+esc(p.name)+'</span>'+subHtml+'</div>'
+              + '<div class="kvt-meta">'+sel+' '+days+' '+delBtn+editBtn+'</div>'
+              + '</div>';
+          }).join('')
+        : '<div class="kvt-empty">No se encontraron procesos.</div>';
+      t.innerHTML = html;
+      if(!filtered.length) return;
+      els('.kvt-process-status', t).forEach(s=>{
+        s.addEventListener('change', ()=>{
+          const id = s.getAttribute('data-id');
+          const val = s.value;
+          const p = new URLSearchParams();
+          p.set('action','kvt_update_process_status');
+          p.set('_ajax_nonce', KVT_NONCE);
+          p.set('id', id);
+          p.set('status', val);
+          fetch(KVT_AJAX,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()})
+            .then(r=>r.json()).then(()=>listProcesses(t));
+        });
+      });
+      els('.kvt-delete-process', t).forEach(b=>b.addEventListener('click', e=>{
+        e.stopPropagation();
+        if(!confirm('¿Eliminar este proceso?')) return;
+        const id = b.getAttribute('data-id');
+        const p = new URLSearchParams();
+        p.set('action','kvt_delete_process');
+        p.set('_ajax_nonce', KVT_NONCE);
+        p.set('id', id);
+        fetch(KVT_AJAX,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()})
+          .then(r=>r.json()).then(j=>{
+            if(!j.success) return alert(j.data && j.data.msg ? j.data.msg : 'No se pudo eliminar.');
+            alert('Proceso eliminado.');
+            listProcesses(t);
+            refresh();
+          });
+      }));
+    });
+  }
+
   function listProcesses(target){
     const params = new URLSearchParams();
     params.set('action','kvt_list_processes');
@@ -6745,60 +6841,9 @@ function kvtInit(){
             }
           });
         }
+        cachedProcessItems = Array.isArray(j.data.items) ? j.data.items.slice() : [];
         const targets = target ? [target] : [processesList, boardProcessesList].filter(Boolean);
-        const statuses = {active:'Activo',completed:'Completado',closed:'Cancelado',discarded:'Descartado'};
-        const html = j.data.items.map(p=>{
-          const subs=[];
-          if(p.client) subs.push('Empresa: '+esc(p.client));
-          subs.push('Creado por '+esc(p.creator||'')+(p.created?' el '+esc(p.created):''));
-          subs.push('Candidatos: '+(p.candidates||0)+' / Etapa: '+esc(p.job_stage||''));
-          const subHtml = '<br><span class="kvt-sub">'+subs.join(' / ')+'</span>';
-          const sel = p.can_edit
-            ? '<select class="kvt-process-status" data-id="'+escAttr(p.id)+'">'+
-              Object.keys(statuses).map(s=>'<option value="'+s+'"'+(p.status===s?' selected':'')+'>'+statuses[s]+'</option>').join('')+
-              '</select>'
-            : '<span class="kvt-status-label">'+(statuses[p.status]||'')+'</span>';
-          const days = '<span class="kvt-active-days">Activo '+p.days+' días</span>';
-          const delBtn = p.can_delete ? '<button type="button" class="kvt-delete-process dashicons dashicons-trash" data-id="'+escAttr(p.id)+'" aria-label="Eliminar"></button>' : '';
-          const editBtn = p.can_edit ? '<button type="button" class="kvt-btn kvt-edit-process" data-id="'+escAttr(p.id)+'" data-name="'+escAttr(p.name||'')+'" data-client-id="'+escAttr(p.client_id||'')+'" data-contact-name="'+escAttr(p.contact_name||'')+'" data-contact-email="'+escAttr(p.contact_email||'')+'" data-desc="'+escAttr(p.description||'')+'" data-meetings="'+escAttr(p.meetings||'')+'" data-recruiters="'+escAttr(Array.isArray(p.recruiters)?p.recruiters.join(','):'')+'">Editar</button>' : '';
-          const warn = p.needs_review ? '<span class="kvt-flag">!</span>' : '';
-          return '<div class="kvt-row kvt-process-row" data-id="'+escAttr(p.id)+'" data-client="'+escAttr(p.client_id||'')+'">'+
-            '<div><span class="kvt-name">'+warn+esc(p.name)+'</span>'+subHtml+'</div>'+
-            '<div class="kvt-meta">'+sel+' '+days+' '+delBtn+editBtn+'</div>'+
-          '</div>';
-        }).join('');
-        targets.forEach(t=>{
-          t.innerHTML = html;
-          els('.kvt-process-status', t).forEach(s=>{
-            s.addEventListener('change', ()=>{
-              const id = s.getAttribute('data-id');
-              const val = s.value;
-              const p = new URLSearchParams();
-              p.set('action','kvt_update_process_status');
-              p.set('_ajax_nonce', KVT_NONCE);
-              p.set('id', id);
-              p.set('status', val);
-              fetch(KVT_AJAX,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()})
-                .then(r=>r.json()).then(()=>listProcesses(target));
-            });
-          });
-          els('.kvt-delete-process', t).forEach(b=>b.addEventListener('click', e=>{
-            e.stopPropagation();
-            if(!confirm('¿Eliminar este proceso?')) return;
-            const id = b.getAttribute('data-id');
-            const p = new URLSearchParams();
-            p.set('action','kvt_delete_process');
-            p.set('_ajax_nonce', KVT_NONCE);
-            p.set('id', id);
-            fetch(KVT_AJAX,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()})
-              .then(r=>r.json()).then(j=>{
-                if(!j.success) return alert(j.data && j.data.msg ? j.data.msg : 'No se pudo eliminar.');
-                alert('Proceso eliminado.');
-                listProcesses(target);
-                refresh();
-              });
-          }));
-        });
+        renderProcessTargets(targets, cachedProcessItems);
       });
   }
   // Create candidate modal
