@@ -30,6 +30,7 @@
 // ==/UserScript==
 // ORY1 - lorfeuvr@amazon.com
 // LYS1 - jbuchmul@amazon.com
+// Edited by @ktimjoha (owner)
 //
 // Latest updates:
 //   2024-08-28 connrand
@@ -42,6 +43,9 @@
 // _______________________________________
 
 /* eslint-env jquery */
+
+(function () {
+"use strict";
 
 GM_addStyle(
   "#TableInScanner { margin: 10px 0px; }" +
@@ -109,20 +113,20 @@ GM_addStyle(
 // What do you want to use. Set true or false for each
 
   /*------ Wall location ------*/
-    var UpdateOuterScannableIDcolumnWithLocation = true;
+    const UpdateOuterScannableIDcolumnWithLocation = true;
 
   /*------ BoxRec ------*/
-    var ShowBoxRec_7_704_15 = true;
-    var ShowBoxRec_1320 = true;
+    const ShowBoxRec_7_704_15 = true;
+    const ShowBoxRec_1320 = true;
 
   /*------ cvAtPM00002 Totes ------*/
-    var ShowLastPickcvAtPM00002 = true;
-    var ShowPickerName = true;
-    var ShowPickerCurrentLocation = true;
+    const ShowLastPickcvAtPM00002 = true;
+    const ShowPickerName = true;
+    const ShowPickerCurrentLocation = true;
 
   /*------ Show items in OverageWall ------*/
-    var OverageWalls = ['chC8_Overage1', 'chC8_Overage2', 'chC8_Overage3', 'chC8_Overage4'];
-    var ShowInOverageWall = false;
+    const OverageWalls = ['chC8_Overage1', 'chC8_Overage2', 'chC8_Overage3', 'chC8_Overage4'];
+    const ShowInOverageWall = false;
 
 //-------------------------------------------------------------
 
@@ -132,61 +136,61 @@ GM_addStyle(
 
 this.$ = this.jQuery = jQuery.noConflict(true);
 
-var columnnamesAddCopy = ['Shipment ID', 'FN SKU', 'Scannable ID', 'Pick Batch ID'];
+const columnnamesAddCopy = ['Shipment ID', 'FN SKU', 'Scannable ID', 'Pick Batch ID'];
 
-var columnnames = ['Outer Scannable ID', 'Scannable ID', 'Condition', 'Shipment ID', 'Pick Batch ID', 'Work Pool', 'FN SKU', 'Demand ID'];
-var TSOcolumnnames = ['Transfer Request ID', 'FN SKU', 'Scannable ID', 'Outer Scannable ID', 'Work Pool', 'Demand ID'];
-var PickingNotYetPickedUnitsStateLimit = 5000;
+const columnnames = ['Outer Scannable ID', 'Scannable ID', 'Condition', 'Shipment ID', 'Pick Batch ID', 'Work Pool', 'FN SKU', 'Demand ID'];
+const TSOcolumnnames = ['Transfer Request ID', 'FN SKU', 'Scannable ID', 'Outer Scannable ID', 'Work Pool', 'Demand ID'];
+const PickingNotYetPickedUnitsStateLimit = 5000;
 
-var _region;
-var _region2;
-var _fcname;
-var _action;
-var _UseNewConsole;
-var _colPos = {};
-var _colPosAddCopy = {};
-var _RowCountLimit = false;
-var _RebinWall = [];
-var _Batches = [];
-var _Shipments = [];
-var _Shipments1320 = [];
-var _Totes = [];
-var _PickingNotYetPicked = [];
-var TblAsinInOverageWall = [];
-var OverageWallChecked = 0;
-var urls = {};
-var _shipmentType;
+let _region;
+let _region2;
+let _fcname;
+let _action;
+let _UseNewConsole;
+let _colPos = {};
+let _colPosAddCopy = {};
+let _RowCountLimit = false;
+let _RebinWall = [];
+let _Batches = [];
+let _Shipments = [];
+let _Shipments1320 = [];
+let _Totes = [];
+let _PickingNotYetPicked = [];
+let TblAsinInOverageWall = [];
+let OverageWallChecked = 0;
+let urls = {};
+let _shipmentType;
 
-var _date = new Date();
-var _endMMDDYYYY = convertdate(_date);
+const _date = new Date();
+const _endMMDDYYYY = convertdate(_date);
 _date.setDate(_date.getDate() - 2);
-var _startMMDDYYYY = convertdate(_date);
+const _startMMDDYYYY = convertdate(_date);
 
-var temp = [];
-var ProcessPath = [];
-var CPT = [];
-var TableTotal = [];
-var TableInScanner = [];
-var TableCharge = [];
-var Trow = 0;
-var Tcol = 0;
-var indice = 0;
-var rooww = 0 ;
-var firstload = true;
+let temp = [];
+let ProcessPath = [];
+let CPT = [];
+let TableTotal = [];
+let TableInScanner = [];
+let TableCharge = [];
+let Trow = 0;
+let Tcol = 0;
+let indice = 0;
+let rooww = 0 ;
+let firstload = true;
 
-var PP = 0
-var roww = 0
-var coll = 1
-var marvelHeroes = []
-var marvelHeroes2 = []
+let PP = 0
+let roww = 0
+let coll = 1
+let marvelHeroes = []
+let marvelHeroes2 = []
 
-var myTableArray = []
-var myTableArrayReadyToPickTable = []
-var myTableArrayPickingNotYetPickedTable = []
+let myTableArray = []
+let myTableArrayReadyToPickTable = []
+let myTableArrayPickingNotYetPickedTable = []
 
-var inScanVS = GM_getValue("inScanVS", 1)
+const inScanVS = GM_getValue("inScanVS", 1)
 
-var currentJS = []
+let currentJS = []
 
 function getColorGreenToRed(value) {
   //value from 0 to 1
@@ -194,73 +198,50 @@ function getColorGreenToRed(value) {
   return ["hsl(", hue, ", 100%, 50%)"].join("");
 }
 
+function getRowValue($row, columnName) {
+  return $.trim($row.find('td:nth-child(' + _colPos[columnName] + ')').text());
+}
+
+function flashCopy($elements) {
+  const originalBg = $elements.css("background-color");
+  $elements.css("background-color", "lime");
+  setTimeout(function() {
+    $elements.css("background-color", originalBg);
+  }, 500);
+}
+
+function registerCopyButton($row, columnName, value, index) {
+  if (!value) {
+    return;
+  }
+
+  const $targetCell = $row.find('td:nth-child(' + _colPos[columnName] + ') .relative');
+  const $button = $('<div class="Copyy">📋</div>');
+
+  $button.on("click", function() {
+    GM_setClipboard(value);
+    flashCopy($button);
+  });
+
+  $targetCell.prepend($button[0]);
+}
+
 function addCopyButton() {
   $('.result-table tr').each(function (index) {
-    if (index == 0){
-    } else {
-      var _condition =        $.trim($(this).find('td:nth-child('+_colPos['Condition']+')').text());
-      var _outerscannableid = $.trim($(this).find('td:nth-child('+_colPos['Outer Scannable ID']+')').text());
-      var _pickbatchid =      $.trim($(this).find('td:nth-child('+_colPos['Pick Batch ID']+')').text());
-      var _shipmentid =       $.trim($(this).find('td:nth-child('+_colPos['Shipment ID']+')').text());
-      var _scannableid =      $.trim($(this).find('td:nth-child('+_colPos['Scannable ID']+')').text());
-      var _workpool =         $.trim($(this).find('td:nth-child('+_colPos['Work Pool']+')').text());
-      var _fnsku =            $.trim($(this).find('td:nth-child('+_colPos['FN SKU']+')').text());
-      var _demandID =         $.trim($(this).find('td:nth-child('+_colPos['Demand ID']+')').text());
-
-      //Copy button
-      if (true) {
-        $(this).find('td:nth-child('+_colPos['Shipment ID']+') .relative').prepend( '<div class="Copyy Copy_' + _shipmentid + '_' + index + '">📋</div>');
-        var elements = document.getElementsByClassName("Copy_" + _shipmentid + '_' + index);
-        for (var i = 0; i < elements.length; i++) {
-          elements[i].addEventListener("click", function() {
-            GM_setClipboard (_shipmentid);
-            var bg_copy = $(".Copy_" + _shipmentid + '_' + index).css("background-color");
-            $(".Copy_" + _shipmentid + '_' + index).css("background-color", "lime");
-            setTimeout(function() {
-              $(".Copy_" + _shipmentid + '_' + index).css("background-color", bg_copy);
-            }, 500)
-          });
-        }
-        $(this).find('td:nth-child('+_colPos['FN SKU']+') .relative').prepend( '<div class="Copyy Copy_' + _fnsku + '_' + index + '">📋</div>');
-        elements = document.getElementsByClassName("Copy_" + _fnsku + '_' + index);
-        for (i = 0; i < elements.length; i++) {
-          elements[i].addEventListener("click", function() {
-            GM_setClipboard (_fnsku);
-            var bg_copy = $(".Copy_" + _fnsku + '_' + index).css("background-color");
-            $(".Copy_" + _fnsku + '_' + index).css("background-color", "lime");
-            setTimeout(function() {
-              $(".Copy_" + _fnsku + '_' + index).css("background-color", bg_copy);
-            }, 500)
-          });
-        }
-        $(this).find('td:nth-child('+_colPos['Scannable ID']+') .relative').prepend( '<div class="Copyy Copy_' + _scannableid + '_' + index + '">📋</div>');
-        elements = document.getElementsByClassName("Copy_" + _scannableid + '_' + index);
-        for (i = 0; i < elements.length; i++) {
-          elements[i].addEventListener("click", function() {
-            GM_setClipboard (_scannableid);
-            var bg_copy = $(".Copy_" + _scannableid + '_' + index).css("background-color");
-            $(".Copy_" + _scannableid + '_' + index).css("background-color", "lime");
-            setTimeout(function() {
-              $(".Copy_" + _scannableid + '_' + index).css("background-color", bg_copy);
-            }, 500)
-          });
-        }
-        if (_pickbatchid != "") {
-          $(this).find('td:nth-child('+_colPos['Pick Batch ID']+') .relative').prepend( '<div class="Copyy Copy_' + _pickbatchid + '_' + index + '">📋</div>');
-          elements = document.getElementsByClassName("Copy_" + _pickbatchid + '_' + index);
-          for (i = 0; i < elements.length; i++) {
-            elements[i].addEventListener("click", function() {
-              GM_setClipboard (_pickbatchid);
-              var bg_copy = $(".Copy_" + _pickbatchid + '_' + index).css("background-color");
-              $(".Copy_" + _pickbatchid + '_' + index).css("background-color", "lime");
-              setTimeout(function() {
-                $(".Copy_" + _pickbatchid + '_' + index).css("background-color", bg_copy);
-              }, 500)
-            });
-          }
-        }
-      }
+    if (index === 0){
+      return;
     }
+
+    const $row = $(this);
+    const shipmentId = getRowValue($row, 'Shipment ID');
+    const fnSku = getRowValue($row, 'FN SKU');
+    const scannableId = getRowValue($row, 'Scannable ID');
+    const pickBatchId = getRowValue($row, 'Pick Batch ID');
+
+    registerCopyButton($row, 'Shipment ID', shipmentId, index);
+    registerCopyButton($row, 'FN SKU', fnSku, index);
+    registerCopyButton($row, 'Scannable ID', scannableId, index);
+    registerCopyButton($row, 'Pick Batch ID', pickBatchId, index);
   });
 }
 
@@ -2158,3 +2139,5 @@ function readCookie(name) {
   }
   return null;
 }
+
+})();
