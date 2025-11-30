@@ -25,12 +25,12 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
 // @author      jbuchmul (LYS1) & lorfeuvr (ORY1)
+// Edited by @ktimjoha (owner)
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAdhAAAHYQGVw7i2AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA1lJREFUWIXtlltoVGcQx3+zmwRUJEiQWgW1USjVNkhAoYi3iBUUC5XWh4IP8bIbsEEERSmmDyriDYIRm2ZTK5bSaqjSl970QYIorVQpbbUFS4iXaqK+CEZrYs7fh53dfFmymnhhXxw4nDP/mW/m/805Z+YzSRRSYgXN/oIIFD0Ngd/8mppj3+v47hx8mePHAAOGAVuAK0A3cB84B7ybs24csDPIB5JQn8xwPXPNcvyBpLGOmaQ/HK927IDrXZJaJZ2R1ClpWxBrt6Ru9ZcnEkDSD27LBFvo+kVJcUlFku45Njdn7cjg+ayk05L2DZVApaRI0i1JwyQdd9+lbi+W1OPYDknDB4gRkqkYKgEktbh9n5P5VelXkbF/GcS4LalB0uQ8sZ6KwOvBLiWpKsdeImmrpDuBT4+kFc+LAJK+dp/Wx/iMUPrDvOS+XY7lJTCUPnDN75cf49MFHATecX24/3p5JbdpzAcmBPp/wJlBkNsInHeSEbDC8Tuke8OgCWzP0b8D3hsEgU9I7zaUB8BHwP+DIZDMY28Pno8C/wKXBvCrAhYA40l3xjbgK+DqAL7XwnymAk9DK582e5FFWleI5IpZfcHHccFfQcEr8OwEUtZGyj4uHIFnlHQfSNkHlHCCh1TSSwdJXaTRyolTBfQQ4ydWqTO7qsnexqgkc6oJpcmmEGMuEXcxviWhe56jFLEIKCXGKVbrAvRVoIVuThJRQ4w3aLY5xDkPTASmE/EXB2yyJ6jG+B4xCvgQeDWbPGWLMY4jjPQ8+BmA/VYG/AksxihDtNJsy/oqACB2kdQ3HuhH4BgJbfakFfSyFqjFWA80kNQ2910S7H8T0EBC+/nUjlLEDQ7aaIqpBh6SZDlINFkJUAe05DvBTiQcQkYbRnnWprwT8TVgOSlbQBEGnKOHbo/XDv7PG23ApP4VCMXoIGJMUJ0xWHYc38IYm4dAJ3CYhPqfolPWCczJiXc9P4GIzzAaabZfEKUYs+hlnpP7AlFLk3VglAGvBCs/B+pI2U2Mm4g3SbCHiEPE2EDK6hB/Y6wB6iHzEYpNxPk9GyapI8R4n4gKYBzGTGp0FoDVbEWsAyZh/IOxEnESgIQaEauAt4hYiLgBEjVqJ840oBhjJqKWhOrhZSt+SQAeAYbqUm9WcFVPAAAAAElFTkSuQmCC
 // @icon64      data:image/png;base64,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
 // ==/UserScript==
 // ORY1 - lorfeuvr@amazon.com
 // LYS1 - jbuchmul@amazon.com
-// Edited by @ktimjoha (owner)
 //
 // Latest updates:
 //   2024-08-28 connrand
@@ -43,9 +43,6 @@
 // _______________________________________
 
 /* eslint-env jquery */
-
-(function () {
-"use strict";
 
 GM_addStyle(
   "#TableInScanner { margin: 10px 0px; }" +
@@ -113,20 +110,20 @@ GM_addStyle(
 // What do you want to use. Set true or false for each
 
   /*------ Wall location ------*/
-    const UpdateOuterScannableIDcolumnWithLocation = true;
+    var UpdateOuterScannableIDcolumnWithLocation = true;
 
   /*------ BoxRec ------*/
-    const ShowBoxRec_7_704_15 = true;
-    const ShowBoxRec_1320 = true;
+    var ShowBoxRec_7_704_15 = true;
+    var ShowBoxRec_1320 = true;
 
   /*------ cvAtPM00002 Totes ------*/
-    const ShowLastPickcvAtPM00002 = true;
-    const ShowPickerName = true;
-    const ShowPickerCurrentLocation = true;
+    var ShowLastPickcvAtPM00002 = true;
+    var ShowPickerName = true;
+    var ShowPickerCurrentLocation = true;
 
   /*------ Show items in OverageWall ------*/
-    const OverageWalls = ['chC8_Overage1', 'chC8_Overage2', 'chC8_Overage3', 'chC8_Overage4'];
-    const ShowInOverageWall = false;
+    var OverageWalls = ['chC8_Overage1', 'chC8_Overage2', 'chC8_Overage3', 'chC8_Overage4'];
+    var ShowInOverageWall = false;
 
 //-------------------------------------------------------------
 
@@ -136,61 +133,61 @@ GM_addStyle(
 
 this.$ = this.jQuery = jQuery.noConflict(true);
 
-const columnnamesAddCopy = ['Shipment ID', 'FN SKU', 'Scannable ID', 'Pick Batch ID'];
+var columnnamesAddCopy = ['Shipment ID', 'FN SKU', 'Scannable ID', 'Pick Batch ID'];
 
-const columnnames = ['Outer Scannable ID', 'Scannable ID', 'Condition', 'Shipment ID', 'Pick Batch ID', 'Work Pool', 'FN SKU', 'Demand ID'];
-const TSOcolumnnames = ['Transfer Request ID', 'FN SKU', 'Scannable ID', 'Outer Scannable ID', 'Work Pool', 'Demand ID'];
-const PickingNotYetPickedUnitsStateLimit = 5000;
+var columnnames = ['Outer Scannable ID', 'Scannable ID', 'Condition', 'Shipment ID', 'Pick Batch ID', 'Work Pool', 'FN SKU', 'Demand ID'];
+var TSOcolumnnames = ['Transfer Request ID', 'FN SKU', 'Scannable ID', 'Outer Scannable ID', 'Work Pool', 'Demand ID'];
+var PickingNotYetPickedUnitsStateLimit = 5000;
 
-let _region;
-let _region2;
-let _fcname;
-let _action;
-let _UseNewConsole;
-let _colPos = {};
-let _colPosAddCopy = {};
-let _RowCountLimit = false;
-let _RebinWall = [];
-let _Batches = [];
-let _Shipments = [];
-let _Shipments1320 = [];
-let _Totes = [];
-let _PickingNotYetPicked = [];
-let TblAsinInOverageWall = [];
-let OverageWallChecked = 0;
-let urls = {};
-let _shipmentType;
+var _region;
+var _region2;
+var _fcname;
+var _action;
+var _UseNewConsole;
+var _colPos = {};
+var _colPosAddCopy = {};
+var _RowCountLimit = false;
+var _RebinWall = [];
+var _Batches = [];
+var _Shipments = [];
+var _Shipments1320 = [];
+var _Totes = [];
+var _PickingNotYetPicked = [];
+var TblAsinInOverageWall = [];
+var OverageWallChecked = 0;
+var urls = {};
+var _shipmentType;
 
-const _date = new Date();
-const _endMMDDYYYY = convertdate(_date);
+var _date = new Date();
+var _endMMDDYYYY = convertdate(_date);
 _date.setDate(_date.getDate() - 2);
-const _startMMDDYYYY = convertdate(_date);
+var _startMMDDYYYY = convertdate(_date);
 
-let temp = [];
-let ProcessPath = [];
-let CPT = [];
-let TableTotal = [];
-let TableInScanner = [];
-let TableCharge = [];
-let Trow = 0;
-let Tcol = 0;
-let indice = 0;
-let rooww = 0 ;
-let firstload = true;
+var temp = [];
+var ProcessPath = [];
+var CPT = [];
+var TableTotal = [];
+var TableInScanner = [];
+var TableCharge = [];
+var Trow = 0;
+var Tcol = 0;
+var indice = 0;
+var rooww = 0 ;
+var firstload = true;
 
-let PP = 0
-let roww = 0
-let coll = 1
-let marvelHeroes = []
-let marvelHeroes2 = []
+var PP = 0
+var roww = 0
+var coll = 1
+var marvelHeroes = []
+var marvelHeroes2 = []
 
-let myTableArray = []
-let myTableArrayReadyToPickTable = []
-let myTableArrayPickingNotYetPickedTable = []
+var myTableArray = []
+var myTableArrayReadyToPickTable = []
+var myTableArrayPickingNotYetPickedTable = []
 
-const inScanVS = GM_getValue("inScanVS", 1)
+var inScanVS = GM_getValue("inScanVS", 1)
 
-let currentJS = []
+var currentJS = []
 
 function getColorGreenToRed(value) {
   //value from 0 to 1
@@ -198,50 +195,73 @@ function getColorGreenToRed(value) {
   return ["hsl(", hue, ", 100%, 50%)"].join("");
 }
 
-function getRowValue($row, columnName) {
-  return $.trim($row.find('td:nth-child(' + _colPos[columnName] + ')').text());
-}
-
-function flashCopy($elements) {
-  const originalBg = $elements.css("background-color");
-  $elements.css("background-color", "lime");
-  setTimeout(function() {
-    $elements.css("background-color", originalBg);
-  }, 500);
-}
-
-function registerCopyButton($row, columnName, value, index) {
-  if (!value) {
-    return;
-  }
-
-  const $targetCell = $row.find('td:nth-child(' + _colPos[columnName] + ') .relative');
-  const $button = $('<div class="Copyy">📋</div>');
-
-  $button.on("click", function() {
-    GM_setClipboard(value);
-    flashCopy($button);
-  });
-
-  $targetCell.prepend($button[0]);
-}
-
 function addCopyButton() {
   $('.result-table tr').each(function (index) {
-    if (index === 0){
-      return;
+    if (index == 0){
+    } else {
+      var _condition =        $.trim($(this).find('td:nth-child('+_colPos['Condition']+')').text());
+      var _outerscannableid = $.trim($(this).find('td:nth-child('+_colPos['Outer Scannable ID']+')').text());
+      var _pickbatchid =      $.trim($(this).find('td:nth-child('+_colPos['Pick Batch ID']+')').text());
+      var _shipmentid =       $.trim($(this).find('td:nth-child('+_colPos['Shipment ID']+')').text());
+      var _scannableid =      $.trim($(this).find('td:nth-child('+_colPos['Scannable ID']+')').text());
+      var _workpool =         $.trim($(this).find('td:nth-child('+_colPos['Work Pool']+')').text());
+      var _fnsku =            $.trim($(this).find('td:nth-child('+_colPos['FN SKU']+')').text());
+      var _demandID =         $.trim($(this).find('td:nth-child('+_colPos['Demand ID']+')').text());
+
+      //Copy button
+      if (true) {
+        $(this).find('td:nth-child('+_colPos['Shipment ID']+') .relative').prepend( '<div class="Copyy Copy_' + _shipmentid + '_' + index + '">📋</div>');
+        var elements = document.getElementsByClassName("Copy_" + _shipmentid + '_' + index);
+        for (var i = 0; i < elements.length; i++) {
+          elements[i].addEventListener("click", function() {
+            GM_setClipboard (_shipmentid);
+            var bg_copy = $(".Copy_" + _shipmentid + '_' + index).css("background-color");
+            $(".Copy_" + _shipmentid + '_' + index).css("background-color", "lime");
+            setTimeout(function() {
+              $(".Copy_" + _shipmentid + '_' + index).css("background-color", bg_copy);
+            }, 500)
+          });
+        }
+        $(this).find('td:nth-child('+_colPos['FN SKU']+') .relative').prepend( '<div class="Copyy Copy_' + _fnsku + '_' + index + '">📋</div>');
+        elements = document.getElementsByClassName("Copy_" + _fnsku + '_' + index);
+        for (i = 0; i < elements.length; i++) {
+          elements[i].addEventListener("click", function() {
+            GM_setClipboard (_fnsku);
+            var bg_copy = $(".Copy_" + _fnsku + '_' + index).css("background-color");
+            $(".Copy_" + _fnsku + '_' + index).css("background-color", "lime");
+            setTimeout(function() {
+              $(".Copy_" + _fnsku + '_' + index).css("background-color", bg_copy);
+            }, 500)
+          });
+        }
+        $(this).find('td:nth-child('+_colPos['Scannable ID']+') .relative').prepend( '<div class="Copyy Copy_' + _scannableid + '_' + index + '">📋</div>');
+        elements = document.getElementsByClassName("Copy_" + _scannableid + '_' + index);
+        for (i = 0; i < elements.length; i++) {
+          elements[i].addEventListener("click", function() {
+            GM_setClipboard (_scannableid);
+            var bg_copy = $(".Copy_" + _scannableid + '_' + index).css("background-color");
+            $(".Copy_" + _scannableid + '_' + index).css("background-color", "lime");
+            setTimeout(function() {
+              $(".Copy_" + _scannableid + '_' + index).css("background-color", bg_copy);
+            }, 500)
+          });
+        }
+        if (_pickbatchid != "") {
+          $(this).find('td:nth-child('+_colPos['Pick Batch ID']+') .relative').prepend( '<div class="Copyy Copy_' + _pickbatchid + '_' + index + '">📋</div>');
+          elements = document.getElementsByClassName("Copy_" + _pickbatchid + '_' + index);
+          for (i = 0; i < elements.length; i++) {
+            elements[i].addEventListener("click", function() {
+              GM_setClipboard (_pickbatchid);
+              var bg_copy = $(".Copy_" + _pickbatchid + '_' + index).css("background-color");
+              $(".Copy_" + _pickbatchid + '_' + index).css("background-color", "lime");
+              setTimeout(function() {
+                $(".Copy_" + _pickbatchid + '_' + index).css("background-color", bg_copy);
+              }, 500)
+            });
+          }
+        }
+      }
     }
-
-    const $row = $(this);
-    const shipmentId = getRowValue($row, 'Shipment ID');
-    const fnSku = getRowValue($row, 'FN SKU');
-    const scannableId = getRowValue($row, 'Scannable ID');
-    const pickBatchId = getRowValue($row, 'Pick Batch ID');
-
-    registerCopyButton($row, 'Shipment ID', shipmentId, index);
-    registerCopyButton($row, 'FN SKU', fnSku, index);
-    registerCopyButton($row, 'Scannable ID', scannableId, index);
-    registerCopyButton($row, 'Pick Batch ID', pickBatchId, index);
   });
 }
 
@@ -2139,5 +2159,3 @@ function readCookie(name) {
   }
   return null;
 }
-
-})();
