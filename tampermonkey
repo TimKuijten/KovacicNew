@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        NewRodeo master @ktimjoha remastered
+// @name        NewRodeo master JBUCHMUL remastered
 // @description Get units in scan on Rodeo
-// @namespace   KTIM based on a script of ORY1 by lorfeuvr@
+// @namespace   LYS1 based on a script of ORY1 by lorfeuvr@
 // @version     20240916
 // @updateURL   https://axzile.corp.amazon.com/-/carthamus/download_script/new-rodeo-master-jbuchmul-remastered.user.js
 // @downloadURL https://axzile.corp.amazon.com/-/carthamus/download_script/new-rodeo-master-jbuchmul-remastered.user.js
@@ -24,7 +24,7 @@
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
-// @author      @ktimjoha (based on jbuchmul (LYS1) & lorfeuvr (ORY1))
+// @author      jbuchmul (LYS1) & lorfeuvr (ORY1)
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAdhAAAHYQGVw7i2AAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAA1lJREFUWIXtlltoVGcQx3+zmwRUJEiQWgW1USjVNkhAoYi3iBUUC5XWh4IP8bIbsEEERSmmDyriDYIRm2ZTK5bSaqjSl970QYIorVQpbbUFS4iXaqK+CEZrYs7fh53dfFmymnhhXxw4nDP/mW/m/805Z+YzSRRSYgXN/oIIFD0Ngd/8mppj3+v47hx8mePHAAOGAVuAK0A3cB84B7ybs24csDPIB5JQn8xwPXPNcvyBpLGOmaQ/HK927IDrXZJaJZ2R1ClpWxBrt6Ru9ZcnEkDSD27LBFvo+kVJcUlFku45Njdn7cjg+ayk05L2DZVApaRI0i1JwyQdd9+lbi+W1OPYDknDB4gRkqkYKgEktbh9n5P5VelXkbF/GcS4LalB0uQ8sZ6KwOvBLiWpKsdeImmrpDuBT4+kFc+LAJK+dp/Wx/iMUPrDvOS+XY7lJTCUPnDN75cf49MFHATecX24/3p5JbdpzAcmBPp/wJlBkNsInHeSEbDC8Tuke8OgCWzP0b8D3hsEgU9I7zaUB8BHwP+DIZDMY28Pno8C/wKXBvCrAhYA40l3xjbgK+DqAL7XwnymAk9DK582e5FFWleI5IpZfcHHccFfQcEr8OwEUtZGyj4uHIFnlHQfSNkHlHCCh1TSSwdJXaTRyolTBfQQ4ydWqTO7qsnexqgkc6oJpcmmEGMuEXcxviWhe56jFLEIKCXGKVbrAvRVoIVuThJRQ4w3aLY5xDkPTASmE/EXB2yyJ6jG+B4xCvgQeDWbPGWLMY4jjPQ8+BmA/VYG/AksxihDtNJsy/oqACB2kdQ3HuhH4BgJbfakFfSyFqjFWA80kNQ2910S7H8T0EBC+/nUjlLEDQ7aaIqpBh6SZDlINFkJUAe05DvBTiQcQkYbRnnWprwT8TVgOSlbQBEGnKOHbo/XDv7PG23ApP4VCMXoIGJMUJ0xWHYc38IYm4dAJ3CYhPqfolPWCczJiXc9P4GIzzAaabZfEKUYs+hlnpP7AlFLk3VglAGvBCs/B+pI2U2Mm4g3SbCHiEPE2EDK6hB/Y6wB6iHzEYpNxPk9GyapI8R4n4gKYBzGTGp0FoDVbEWsAyZh/IOxEnESgIQaEauAt4hYiLgBEjVqJ840oBhjJqKWhOrhZSt+SQAeAYbqUm9WcFVPAAAAAElFTkSuQmCC
 // @icon64      data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAACA9JREFUeJztmn+QVWUZxz/v3Z8KIiAuv5aQFpSRJjGaKCbE7IejjYy/cKyxYAb3bhT4I3OazNxyBitH1CQHuSvEaFIO/ohQZGJqYqZQSgUyxECBynZbYBcBsf15v/3xnnPvuWffe/fu3sseHPY7c+ac93mf53mf85z313me10jidEYsagOixqADojYgagw6IGoD8sCZwIiTpbw08LwyVPcr4I85ZBcB00O0e4DmHDLzgVmBchvwHaAzQCsHvgLcCHwaGO7RO4FDwB5gk3ftzNGWjxjwZeBKMj94HQCS/CuMbwXqXNcXHDI/zME/VFJriH9ZiGeqpDccerPhjBztVUqqlbQ7iyySCnIAkn4fkvmvpIosvLeGeI9KGhWoHyepqddXzoTLAaMk3SOpuRdZJGUMgf7g+8DLgfJobPddE+IrAW4N0ZYBhwPlpcCYEM8eYCNwEKgEqoBJwGeAYVlsWgrE87IeCu4BSFofktvh4LkhxNMsOyT8+jJJx0M8z0mKZWmzRNIM7x6uWxnS0yXpQLYeUIxV4G4gGShfBHwuxPPtUHkp8H6gPBYYGuJ5MqQ3iG7gNe/uQhuwAVjo6b47C19RHPAGdsUI4rbA82eBmYHyAXquOC47LuqnPQ8Do4C5wGrsypEdRRgCSJosqSMg2+3RkPR8SO/XHfJlkt4P8XVKelhSdR/syHbddDKHAMDbnrd9xIAlwBTvS/j4O/CUQ74TeDZEK8VOnAew3fkG7ERYXBSpByBpvKQPAvLHJD0V0jm3F/lGhx1BHJT0A0kji9UDiukAJD2Qw/itecjXSHqlFydI0hFJ1/fBrpM+BHz8BDiWpe57eci/g13jrwL+nINvOPA0cHWfrHOg2A44DDzooL8EbMlTh4AXsKvHx4D7cf9fxIDlQFnfzcxUUmysctBW9FPXLuC7wETsz8t7ofpqYEY/dQMnxwGdDlpbgTrbgQTwDUfdRwpR/GGIBwSxy0E7UYjCU8kB5+TBM89Be7OQRnP9DS6m91n2fmBzIQYE8BZwFPt3uRM78R3C/jNUYzdUN4ZkXgH2F9JoLgdM9a5c+GUhjTtQ41035cHbDtxSaIOn0hDoC1qBa4C/Fqoo2ANe64d8i4PW6dCVbXMURBwbTJlNz8CIj3ex/xIPYoMk+aLFYRMARjolU2NV2B+pYdiNznvAPqwDiopT1QEDhg/rHFA0lAJMmT7n4iR8KWpjBhIx+N3eHVu2m2nTLh3aVppsBM6K2qgBxvHKrti4034IGElMmT7nYmGuMag8aoMGAsJ0GPT83h1btg+uAlEbEDUGHRC1AVGj0ORo4UiY9dj9/wfEVT3QzUfvADEUwwjswYgBx2k/BAYdELUBUSM9BySMTVnHeJQkjRhqETMwiFqlg5GPm9EkuQW4HJt77wL2Ip5hJKuZpw5nSw1mLrAYcSFwBLGTEn7eq4UN5nzgdsQl2EDJCcSrxHiAWm11yqw0V2FYAHwcG1M4DPwJwyPUKiOynN4JJoy/JVwHfB4Y6ZU7iKvCe/kZJNmEzb8D/Av7E+UfY9tKO1ewRJkRoIS5C3soAuB/QBMwDpvt7cBOgCeIK/OQRIO5AvEM9qhcMzYCPBmYAHQhrqVOGwKvY2igAbHQI7QB/wHOwx7T6QQWENdaX8I1BOYBryMWYbgSuBaANaaSJM96L/9PuplKXBOJayTiOk/5LCp4KPTynwDutfaxERhLXDU0MQRxNZnnhNL4hTkXsdZ7+acp5zziugwbNP0NUIrhZ2BMui1qAy9/HzCMuCZTQhWGzdjo0ipWmAtyOeBF4voidXqMWr1EXC8C0M712BSVVb5I/0hJ1Ok5DOu90td43IwO6ItjvS/gduI6CkC9ktRpPeItpwM6WYBNgrYBi1kgm12Kq5NYKv84iQQXBKTu8O7v0kQ9cdks1UK1kkydWqmkhCW5HOA+lxPj0tRzF791SPldsYwklwRqZnv3fdRqj1O3G3O8+27iCveSYGxwLACPmfHA+R5tI/XqypCo05vY7DPAZT45/41QkmpsZ+vmkCMiG6MRfxYREwI14717rhOkLvi7wo+SMK+G6ipST6LVaz+4i2xyahSNGGoI5BPzd4BJ8XZSr569JEkH6dEYTFn7z66kaS74csdxh7S3elz7vPZLA/3ZvRIZ2sP29WUr7HfDShLm7NRYTitPj/tYxsmsI9iJbDR9gWjxHNpCXHV58AeHSba2/HxDqgfnvxEyBLvhTAdHkLYt8LzDu9eQMGP70N5272kyCXNmr/wH2Uv6/EBP+x4152BzDQB/8cn5O6CEtZDqQneyzpSk6uyLzfdK2zI2G+LX3lMZUJ+xbK0yEzGpOSIMf60egrgvQ87HCjMiRbfD8gmvZiYJk3lYs5zb8OcOpQ9xuDZCG4hrLi4kzGLssRSAXRj+QJKzvP1CFXCMGLO5WX9LyfzIxBjDZkxq5n0b8ToxqhCzsMMwhmsjlDDLsVlqgN3Ay4hmDOcC04BPAWeklrs1ZjgdbMOuBu3AC4j9xPgk8lYxwxPUyv9YGQ5o9Rg2UauvOh0A0GCuQ9wLXBigdgObEXd4y00mnjRDaOPHiPmkDznvBx7BUIq4C2c8wBgSfBO7vk8Kaf03hnU0cmfGpJwwo4CfYlPpwaHTDCyjiWVB/v4HRVebcXQxAUM7Yn+PSdGFhCmjizGU08HN6tuyaNf58ZTSBjT3Kr/cVFDGFGIMoYQWFvIO9HzZwahw1AZEjUEHRG1A1Bh0QNQGRI1BB0RtQNT4P8JeFA/aOehFAAAAAElFTkSuQmCC
 // ==/UserScript==
@@ -132,4 +132,2029 @@ GM_addStyle(
 
 this.$ = this.jQuery = jQuery.noConflict(true);
 
-// ...rest of the script remains unchanged...
+var columnnamesAddCopy = ['Shipment ID', 'FN SKU', 'Scannable ID', 'Pick Batch ID'];
+
+var columnnames = ['Outer Scannable ID', 'Scannable ID', 'Condition', 'Shipment ID', 'Pick Batch ID', 'Work Pool', 'FN SKU', 'Demand ID'];
+var TSOcolumnnames = ['Transfer Request ID', 'FN SKU', 'Scannable ID', 'Outer Scannable ID', 'Work Pool', 'Demand ID'];
+var PickingNotYetPickedUnitsStateLimit = 5000;
+
+var _region;
+var _region2;
+var _fcname;
+var _action;
+var _UseNewConsole;
+var _colPos = {};
+var _colPosAddCopy = {};
+var _RowCountLimit = false;
+var _RebinWall = [];
+var _Batches = [];
+var _Shipments = [];
+var _Shipments1320 = [];
+var _Totes = [];
+var _PickingNotYetPicked = [];
+var TblAsinInOverageWall = [];
+var OverageWallChecked = 0;
+var urls = {};
+var _shipmentType;
+
+var _date = new Date();
+var _endMMDDYYYY = convertdate(_date);
+_date.setDate(_date.getDate() - 2);
+var _startMMDDYYYY = convertdate(_date);
+
+var temp = [];
+var ProcessPath = [];
+var CPT = [];
+var TableTotal = [];
+var TableInScanner = [];
+var TableCharge = [];
+var Trow = 0;
+var Tcol = 0;
+var indice = 0;
+var rooww = 0 ;
+var firstload = true;
+
+var PP = 0
+var roww = 0
+var coll = 1
+var marvelHeroes = []
+var marvelHeroes2 = []
+
+var myTableArray = []
+var myTableArrayReadyToPickTable = []
+var myTableArrayPickingNotYetPickedTable = []
+
+var inScanVS = GM_getValue("inScanVS", 1)
+
+var currentJS = []
+
+function getColorGreenToRed(value) {
+  //value from 0 to 1
+  var hue = ((1 - value) * 120).toString(10);
+  return ["hsl(", hue, ", 100%, 50%)"].join("");
+}
+
+function addCopyButton() {
+  $('.result-table tr').each(function (index) {
+    if (index == 0){
+    } else {
+      var _condition =        $.trim($(this).find('td:nth-child('+_colPos['Condition']+')').text());
+      var _outerscannableid = $.trim($(this).find('td:nth-child('+_colPos['Outer Scannable ID']+')').text());
+      var _pickbatchid =      $.trim($(this).find('td:nth-child('+_colPos['Pick Batch ID']+')').text());
+      var _shipmentid =       $.trim($(this).find('td:nth-child('+_colPos['Shipment ID']+')').text());
+      var _scannableid =      $.trim($(this).find('td:nth-child('+_colPos['Scannable ID']+')').text());
+      var _workpool =         $.trim($(this).find('td:nth-child('+_colPos['Work Pool']+')').text());
+      var _fnsku =            $.trim($(this).find('td:nth-child('+_colPos['FN SKU']+')').text());
+      var _demandID =         $.trim($(this).find('td:nth-child('+_colPos['Demand ID']+')').text());
+
+      //Copy button
+      if (true) {
+        $(this).find('td:nth-child('+_colPos['Shipment ID']+') .relative').prepend( '<div class="Copyy Copy_' + _shipmentid + '_' + index + '">📋</div>');
+        var elements = document.getElementsByClassName("Copy_" + _shipmentid + '_' + index);
+        for (var i = 0; i < elements.length; i++) {
+          elements[i].addEventListener("click", function() {
+            GM_setClipboard (_shipmentid);
+            var bg_copy = $(".Copy_" + _shipmentid + '_' + index).css("background-color");
+            $(".Copy_" + _shipmentid + '_' + index).css("background-color", "lime");
+            setTimeout(function() {
+              $(".Copy_" + _shipmentid + '_' + index).css("background-color", bg_copy);
+            }, 500)
+          });
+        }
+        $(this).find('td:nth-child('+_colPos['FN SKU']+') .relative').prepend( '<div class="Copyy Copy_' + _fnsku + '_' + index + '">📋</div>');
+        elements = document.getElementsByClassName("Copy_" + _fnsku + '_' + index);
+        for (i = 0; i < elements.length; i++) {
+          elements[i].addEventListener("click", function() {
+            GM_setClipboard (_fnsku);
+            var bg_copy = $(".Copy_" + _fnsku + '_' + index).css("background-color");
+            $(".Copy_" + _fnsku + '_' + index).css("background-color", "lime");
+            setTimeout(function() {
+              $(".Copy_" + _fnsku + '_' + index).css("background-color", bg_copy);
+            }, 500)
+          });
+        }
+        $(this).find('td:nth-child('+_colPos['Scannable ID']+') .relative').prepend( '<div class="Copyy Copy_' + _scannableid + '_' + index + '">📋</div>');
+        elements = document.getElementsByClassName("Copy_" + _scannableid + '_' + index);
+        for (i = 0; i < elements.length; i++) {
+          elements[i].addEventListener("click", function() {
+            GM_setClipboard (_scannableid);
+            var bg_copy = $(".Copy_" + _scannableid + '_' + index).css("background-color");
+            $(".Copy_" + _scannableid + '_' + index).css("background-color", "lime");
+            setTimeout(function() {
+              $(".Copy_" + _scannableid + '_' + index).css("background-color", bg_copy);
+            }, 500)
+          });
+        }
+        if (_pickbatchid != "") {
+          $(this).find('td:nth-child('+_colPos['Pick Batch ID']+') .relative').prepend( '<div class="Copyy Copy_' + _pickbatchid + '_' + index + '">📋</div>');
+          elements = document.getElementsByClassName("Copy_" + _pickbatchid + '_' + index);
+          for (i = 0; i < elements.length; i++) {
+            elements[i].addEventListener("click", function() {
+              GM_setClipboard (_pickbatchid);
+              var bg_copy = $(".Copy_" + _pickbatchid + '_' + index).css("background-color");
+              $(".Copy_" + _pickbatchid + '_' + index).css("background-color", "lime");
+              setTimeout(function() {
+                $(".Copy_" + _pickbatchid + '_' + index).css("background-color", bg_copy);
+              }, 500)
+            });
+          }
+        }
+      }
+    }
+  });
+}
+
+function UpdateTableInScanner(arrayy) {
+  if (true) {
+      var arrayCopy = []
+      var totalrows = []
+      var index = 0
+      var total = 0
+      var totalCol = 0
+      for (const element of arrayy) {
+          if (index < arrayy.length - 2) {
+              element[0] = element.slice(1).reduce((a, b) => a + b, 0);
+              //element[0] = "0";
+              totalCol = 0;
+              for (const element2 of element) {
+                  if (totalrows[totalCol] == undefined) {
+                      totalrows.push(0);
+                  }
+                  totalrows[totalCol] += parseInt(element2)
+                  totalCol += 1;
+              }
+          }
+          index += 1
+      }
+      arrayy[arrayy.length - 2] = totalrows;
+
+      var temp4 = []
+      totalrows.forEach(PP => {
+          temp4.push(Math.round((1- PP /totalrows[0])*100*100)/100 + " %")
+      })
+      arrayy[TableInScanner.length - 1] = [...temp4]
+      indice = 0;
+      $("#DilutionInScanner td").each(function() {
+          var taux = Math.round(arrayy[arrayy.length - 2][indice] / totalrows[0] * 100 * 100) / 100
+          $(this)[0].style.backgroundColor = getColorGreenToRed(1-(taux/100));
+          //console.log("oui")
+          indice = indice + 1
+      });
+
+      var rooww = 0;
+      $("table#TableInScanner tr").each(function() {
+          indice = 0;
+          var tableData = $(this).find('td');
+          if (tableData.length > 0) {
+              tableData.each(function() {
+                  $(this)[0].innerHTML = arrayy[rooww][indice]
+                  indice = indice + 1
+              });
+              rooww = rooww + 1
+          }
+      });
+  }
+  var sdsq = 1
+  if (sdsq == 1) {
+    rooww = 0;
+    $("table#TableInScanner tr").each(function() {
+      var arrayOfThisRow = [];
+      var current_CPT = ""
+      var current_PP = ""
+
+      indice = 0;
+      var tableData = $(this).find('td');
+      if (tableData.length > 0) {
+        tableData.each(function() {
+          current_CPT = myTableArray[0][indice+1]
+          current_PP = myTableArray[rooww+1][0]
+          // if ((TableCharge[rooww] != undefined) && (rooww < TableTotal.length + 1) && (indice < TableTotal[0].length + 1) && (indice < TableCharge[0].length + 1)) {
+          //   //11111111111
+          //   var dsqdq = (TableTotal[rooww][indice] - TableCharge[rooww][indice])
+          //   if (dsqdq > 0) {
+          //     //$(this)[0].innerHTML = TableInScanner[rooww][indice] + "/" + (TableTotal[rooww][indice] - TableCharge[rooww][indice])
+
+          //   } else {
+          //     $(this)[0].innerHTML = TableInScanner[rooww][indice]
+          //   }
+          // }
+          var myTableArrayPP = []
+          myTableArray.forEach((el) => myTableArrayPP.push(el[0]))
+          var myTableArrayReadyToPickTablePP = []
+          myTableArrayReadyToPickTable.forEach((el) => myTableArrayReadyToPickTablePP.push(el[0]))
+          var myTableArrayPickingNotYetPickedTablePP = []
+          myTableArrayPickingNotYetPickedTable.forEach((el) => myTableArrayPickingNotYetPickedTablePP.push(el[0]))
+
+          var nbReadyToPick = 0
+          var nbPickingNotYetPicked = 0
+          var nbAll = 0
+          if (myTableArrayPickingNotYetPickedTablePP.indexOf(current_PP) != -1 && myTableArrayPickingNotYetPickedTable[0].indexOf(current_CPT) != -1) {
+            nbPickingNotYetPicked = parseInt(myTableArrayPickingNotYetPickedTable[myTableArrayPickingNotYetPickedTablePP.indexOf(current_PP)][myTableArrayPickingNotYetPickedTable[0].indexOf(current_CPT)])
+          }
+          if (myTableArrayReadyToPickTablePP.indexOf(current_PP) != -1 && myTableArrayReadyToPickTable[0].indexOf(current_CPT) != -1) {
+            nbReadyToPick = parseInt(myTableArrayReadyToPickTable[myTableArrayReadyToPickTablePP.indexOf(current_PP)][myTableArrayReadyToPickTable[0].indexOf(current_CPT)])
+          }
+          if (myTableArrayPP.indexOf(current_PP) != -1 && myTableArray[0].indexOf(current_CPT) != -1) {
+            nbAll = parseInt(myTableArray[myTableArrayPP.indexOf(current_PP)][myTableArray[0].indexOf(current_CPT)])
+          }
+
+          if (inScanVS == 1 && current_PP != "Dilution" ) {
+            if ( nbPickingNotYetPicked == 0 && false) {
+              $(this)[0].innerHTML = ""
+            } else {
+              $(this)[0].innerHTML = TableInScanner[rooww][indice] + "/" + nbPickingNotYetPicked
+            }
+          } else if (inScanVS == 2 && current_PP != "Dilution" ) {
+            $(this)[0].innerHTML = TableInScanner[rooww][indice] + "/" + parseInt(nbPickingNotYetPicked + nbReadyToPick)
+          } else if (inScanVS == 3 && current_PP != "Dilution" ) {
+            $(this)[0].innerHTML = TableInScanner[rooww][indice]+ "/" + nbAll
+          } else {
+            $(this)[0].innerHTML = TableInScanner[rooww][indice]
+          }
+          indice = indice + 1
+        });
+        rooww = rooww + 1
+      }
+    });
+
+    sdsq = 2
+  }
+}
+
+function addHeaders(table, keys) {
+  var row = table.insertRow();
+    for (var i = 0; i < keys.length; i++) {
+        var headerCell = document.createElement("TH");
+        headerCell.innerHTML = keys[i];
+        row.appendChild(headerCell);
+    }
+  // for( var i = 0; i < keys.length; i++ ) {
+  //   var cell = row.insertCell();
+
+  //   cell.appendChild(document.createTextNode(keys[i]));
+  // }
+}
+
+function updatePickerInScanList(CPTT, PP, Login) {
+  if (_UseNewConsole) {
+    var redElements = document.querySelectorAll('#TableLoginInScanner');
+    var first = redElements[0];
+    if (first != undefined) {
+      first.remove()
+    }
+    var marvelHeroes = []
+    var marvelHeroes2 = []
+    var marvelHeroes3 = []
+    marvelHeroes3 = currentJS.filter(function(hero) {
+      if (PP != 0) {
+        return hero.processPath == PP;
+      } else{
+        return hero;
+      }
+    });
+    marvelHeroes2 = marvelHeroes3.filter(function(hero) {
+      if (CPTT == "undefined") {
+        return parseInt(hero.expectedShipmentDate) > parseInt(CPT[CPT.length - 1]);
+      } else if (CPTT != 0) {
+        return hero.expectedShipmentDate == CPTT;
+      } else{
+        return hero;
+      }
+    });
+    marvelHeroes = marvelHeroes2.filter(function(hero) {
+      if (Login != 0) {
+        return hero.pickerLogin.indexOf(Login) >= 0;
+      } else{
+        return hero;
+      }
+    });
+
+    var table = document.createElement('table');
+    var textcell = ""
+    $(table).attr('id', 'TableLoginInScanner')
+    for( var i = 0; i < marvelHeroes.length; i++ ) {
+      var child = marvelHeroes[i];
+      var hder = ["ProcessPath", "CPT", "Login", "Qty", "Batch", "Location"]
+      var hderKeys = ["processPath", "expectedShipmentDate", "pickerLogin", "pickQuantity", "batchId", "scannableId"]
+      if(i === 0 ) {
+        addHeaders(table, hder);
+      }
+      var row = table.insertRow();
+      hderKeys.forEach(function(k) {
+        var cell = row.insertCell();
+        if (k == "expectedShipmentDate") {
+          let current_datetime = new Date(parseInt(child[k].toString() + "000"))
+          const dayy = current_datetime.getDate() < 10 ? "0" + current_datetime.getDate() : current_datetime.getDate()
+          const monthh = parseInt(current_datetime.getMonth()+1) < 10 ? "0" + parseInt(current_datetime.getMonth()+1) : parseInt(current_datetime.getMonth()+1)
+          const hourr = current_datetime.getHours() < 10 ? "0" + current_datetime.getHours() : current_datetime.getHours()
+          const minutee = current_datetime.getMinutes() < 10 ? "0" + current_datetime.getMinutes() : current_datetime.getMinutes()
+          let formatted_date = current_datetime.getFullYear() + "-" + monthh + "-" + dayy + "  " + hourr + ":" + minutee
+          textcell = formatted_date
+        } else {
+          textcell = child[k]
+        }
+        cell.appendChild(document.createTextNode(textcell));
+      })
+    }
+
+    document.getElementById('main-panel').appendChild(table);
+
+    const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+                                              v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+                                              )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+    // do the work...
+    document.querySelectorAll('#TableLoginInScanner th').forEach(th => th.addEventListener('click', (() => {
+      const table = th.closest('table');
+      Array.from(table.querySelectorAll('tr:nth-child(n+2)'))
+        .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
+        .forEach(tr => table.appendChild(tr) );
+    })));
+  }
+}
+
+function reloadInScan(pickerLogin) {
+  //console.log("dsqd")
+  //console.log("request")
+  GM_xmlhttpRequest({
+    method: "GET",
+    url: "https://picking-console." + _region2 + ".picking.aft.a2z.com/api/fcs/" + _fcname + "/process-paths/inScanner",
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    onload: function(response) {
+      var js = JSON.parse(response.responseText);
+      if (typeof js.inScannerPickList != 'undefined'){
+        currentJS = js.inScannerPickList;
+        $.each(js.inScannerPickList, function(index, obj){
+          var _ProcessPath = obj.processPath.toLowerCase();
+          $('.inscan_' + _ProcessPath).text(Number($('.inscan_' + _ProcessPath).text())+1);
+        })
+
+        if (true) {
+          var PP = 0;
+          var roww = 0;
+          var coll = 1;
+          var marvelHeroes = [];
+          var totalPPJS = [];
+          ProcessPath.forEach(PP => {
+            coll = 1
+            TableInScanner[roww][0] = 0;
+            TableInScanner[roww][TableInScanner[0].length - 1] = 0;
+
+            var totalQty2 = 0
+            CPT.forEach(CPTT => {
+              var totalQty = 0
+              if (pickerLogin.length > 1) {
+                marvelHeroes = js.inScannerPickList.filter(function(hero) {
+                  return hero.expectedShipmentDate == CPTT && hero.processPath == PP && hero.pickerLogin.indexOf(pickerLogin) >= 0;
+                });
+
+                totalPPJS = js.inScannerPickList.filter(function(hero) {
+                  return hero.processPath == PP && hero.pickerLogin.indexOf(pickerLogin) >= 0;
+                });
+              } else {
+
+              marvelHeroes = js.inScannerPickList.filter(function(hero) {
+                return hero.expectedShipmentDate == CPTT && hero.processPath == PP;
+              });
+
+              totalPPJS = js.inScannerPickList.filter(function(hero) {
+                return hero.processPath == PP;
+              });
+              }
+              marvelHeroes.forEach(malv => {
+                totalQty = totalQty + parseInt(malv.pickQuantity)
+              })
+              TableInScanner[roww][coll] = totalQty;
+              TableInScanner[roww][0] += totalQty;
+              coll = coll + 1;
+            });
+            totalPPJS.forEach(malv => {
+              totalQty2 = totalQty2 + parseInt(malv.pickQuantity)
+            })
+            TableInScanner[roww][coll] = parseInt(totalQty2 - TableInScanner[roww][0]);
+            // TableInScanner[roww][coll] = "lol"
+            roww = roww + 1;
+          });
+          UpdateTableInScanner(TableInScanner);
+          rooww = 0;
+          indice = 0;
+          var backcolor = "white"
+          rooww = 0;
+          $("table#TableInScanner tr").each(function() {
+            var arrayOfThisRow = [];
+            indice = 0;
+            var tableData = $(this).find('td');
+            if (tableData.length > 0) {
+              tableData.each(function() {
+                if (rooww < TableInScanner.length - 2) {
+
+                  if (parseInt($(this)[0].innerHTML) < 1 && $(this)[0].style.backgroundColor != "cyan") {
+                    backcolor = $(this)[0].style.backgroundColor;
+                  }
+                  if (parseInt($(this)[0].innerHTML) > 0 && rooww < TableInScanner.length - 2 && indice != 0) {
+                    $(this)[0].style.backgroundColor = "cyan"
+                    if ($(this)[0].innerHTML.split("/")[0] != undefined) {
+                      if ($(this)[0].innerHTML.split("/")[0] == $(this)[0].innerHTML.split("/")[1]) {
+                        $(this)[0].style.backgroundColor = "aquamarine"
+                      }
+                    }
+                    console.log()
+                  } else if (indice > 0 && $(this)[0].innerHTML.split("/")[1] != undefined && $(this)[0].innerHTML.split("/")[1] > 0) {
+                    $(this)[0].style.backgroundColor = "#FFF6D8"
+                  } else if (rooww != TableInScanner.length - 1 && indice != 0) {
+                    $(this)[0].style.backgroundColor = "white"
+                  }
+                }
+                indice = indice + 1
+              });
+              rooww = rooww + 1
+            }
+          });
+        }
+        if (firstload) {
+          updatePickerInScanList(0, 0, 0)
+          firstload = false
+        }
+      }
+      //console.log("request")
+      GM_xmlhttpRequest({
+        method: "GET",
+        url: "https://process-path." + _region2 + ".picking.aft.a2z.com/api/processpath/" + _fcname + "/processPathWithUserSettingsList",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        onload: function(response) {
+          var js = JSON.parse(response.responseText);
+          if (typeof js.processPaths != 'undefined'){
+            $.each(js.processPaths, function(index, obj){
+              var _ProcessPath = obj.processPathName.toLowerCase();
+              $('.pra_' + _ProcessPath).text(obj.pickRateAverage);
+              $('.tur_' + _ProcessPath).text(obj.unitRateTarget) ;
+              $('.caltur_' + _ProcessPath).text(Math.round(obj.unitRateTarget / obj.pickRateAverage * 100) / 100) ;
+              $('.batchlimit_' + _ProcessPath).text(obj.openBatchQuantityLimit);
+              $('.totelimit_' + _ProcessPath).text(obj.containerQuantityLimit);
+              // console.log(_ProcessPath)
+              // console.log(obj.openBatchQuantityLimit)
+              $('.batchinfos_' + _ProcessPath).html((obj.openBatchQuantityLimit > 0) ? "<a class='loader'>⌛</a> / <a class='loader'>⌛</a> / "+ obj.openBatchQuantityLimit : "")
+
+              {
+                const pickRateDelta = (parseInt($(`.pickrate_${_ProcessPath}`).text()) / parseInt(obj.pickRateAverage)) - 1;
+                if(!isNaN(pickRateDelta)) {
+                  $('.prd_' + _ProcessPath).text(`${Math.round(pickRateDelta * 100)}%`);
+                  if(Math.abs(pickRateDelta) > 0.1) {
+                    $('.prd_' + _ProcessPath).css({
+                      'background-color': 'hsl(0, 100%, 90%)',
+                      'color': 'hsl(0, 100%, 20%)'
+                    });
+                  }
+                }
+              }
+
+              {
+                const unitRateTargetDelta = (parseInt($(`.uph_${_ProcessPath}`).text()) / parseInt(obj.unitRateTarget)) - 1;
+                if(!isNaN(unitRateTargetDelta)) {
+                  $('.turd_' + _ProcessPath).text(`${Math.round(unitRateTargetDelta * 100)}%`);
+                  if(Math.abs(unitRateTargetDelta) > 0.1) {
+                    $('.turd_' + _ProcessPath).css({
+                      'background-color': 'hsl(0, 100%, 90%)',
+                      'color': 'hsl(0, 100%, 20%)'
+                    });
+                  }
+                }
+              }
+            });
+          }
+        }
+      });
+    }
+  });
+  // console.log("https://process-path." + _region2 + ".picking.aft.a2z.com/api/processpath/" + _fcname + "/processPathWithUserSettingsList")
+  if (pickerLogin.length == 0) {
+    updatePickerInScanList(0, 0, 0)
+  } else {
+    updatePickerInScanList(0, 0, pickerLogin)
+  }
+}
+
+$(document).ready(function () {
+  var userLang = navigator.language || navigator.userLanguage;
+  // alert ("The language is: " + userLang);
+
+  // Retrieve url infos
+  var _urlmatch = document.URL.match(/https:\/\/rodeo-(.*?).amazon.com\/(.*?)\/(.*?)\?/);
+  if (_urlmatch){
+    _region = _urlmatch[1];
+    _fcname = _urlmatch[2];
+    _action = _urlmatch[3];
+    _region2 = { 'dub': 'eu', 'iad': 'na', 'nrt': 'jp' }[_region];
+  }
+
+  addConsoleLinkToggleButton();
+
+  // console.log(_region, _region2, _fcname, _action, _UseNewConsole);
+
+  /*------------------------------
+  -  Clone Table to show InScanner
+  */
+  var redElements = document.querySelectorAll('.table-wrapper');
+  var first = redElements[0];
+  if (first != undefined) {
+    $('#TotalTable').clone().attr('id', 'TableInScanner').insertAfter(first);
+
+    $('#TableInScanner tr').find('td:eq(1), th:eq(1)').remove();
+    $('#TableInScanner tr').find('td:eq(1), th:eq(1)').remove();
+
+    $('#TableInScanner tr:last').clone().attr('id', 'DilutionInScanner').insertAfter($("#TableInScanner .grand-total"));
+
+    $('#TableInScanner td').on("click", function(){
+      var cptpp = $(this).attr("id").split("-");
+      updatePickerInScanList(cptpp[0], cptpp[1], 0);
+      document.getElementById("inputLogin").value = "";
+    });
+
+    redElements = document.querySelectorAll('#DilutionInScanner th')
+    redElements[0].innerHTML = "Dilution"
+
+    var redElements2 = document.querySelectorAll('.process-path-title');
+    var first2 = redElements2[0];
+    $(first2).clone().attr('id', 'NameTableInScanner').addClass('NameTableInScanner').insertAfter(first);
+    $(first2).clone().attr('id', 'NameTableInScanner2').addClass('NameTableInScanner2').insertAfter($("#TableInScanner"));
+
+    document.getElementById("NameTableInScanner").innerHTML = "<br /><span style='color: blue'>Units in scan of :  </span>";
+    document.getElementById("NameTableInScanner2").innerHTML = "<br /><br />";
+
+    var bug = document.createElement("button");
+    bug.innerHTML = "🔗 Open Console";
+    bug.setAttribute("class", "buttonInScan");
+    $(bug).insertAfter($("#TableInScanner"));
+    $(bug).click(function() {
+      if (true) {
+        window.open("https://picking-console." + _region2 + ".picking.aft.a2z.com/fc/" + _fcname + "/pick-workforce", "_blank")
+      }
+    });
+
+    var InputLogin = document.createElement("input");
+    InputLogin.setAttribute("type", "text");
+    InputLogin.setAttribute("id", "inputLogin");
+    // InputLogin.innerHTML = "Reset";
+    $(InputLogin).insertAfter($("#NameTableInScanner"));
+    $(InputLogin).on('input', function() {
+      reloadInScan(document.getElementById("inputLogin").value)
+    });
+
+    var buttonNone = document.createElement("button");
+    buttonNone.innerHTML = "None";
+    buttonNone.setAttribute("class", "buttonInScan");
+    $(buttonNone).insertAfter($("#TableInScanner"));
+    $(buttonNone).click(function() {
+      GM_setValue("inScanVS", 4);
+      location.reload();
+    });
+
+    var buttonAll = document.createElement("button");
+    buttonAll.setAttribute("class", "buttonInScan");
+    buttonAll.innerHTML = "/ All";
+    $(buttonAll).insertAfter($("#TableInScanner"));
+    $(buttonAll).click(function() {
+      GM_setValue("inScanVS", 3);
+      location.reload();
+    });
+
+    var buttonPickingReady = document.createElement("button");
+    buttonPickingReady.setAttribute("class", "buttonInScan");
+    buttonPickingReady.innerHTML = "/ (PickingNotYetPicked + ReadyToPick)";
+    $(buttonPickingReady).insertAfter($("#TableInScanner"));
+    $(buttonPickingReady).click(function() {
+      GM_setValue("inScanVS", 2);
+      location.reload();
+    });
+
+    var buttonPicking = document.createElement("button");
+    buttonPicking.innerHTML = "/ PickingNotYetPicked";
+    buttonPicking.setAttribute("class", "buttonInScan");
+    $(buttonPicking).insertAfter($("#TableInScanner"));
+    $(buttonPicking).click(function() {
+      GM_setValue("inScanVS", 1);
+      location.reload();
+    });
+
+    if (inScanVS == 1) {
+      buttonPicking.setAttribute("class", "buttonInScan buttonInScanSelected");
+    } else if (inScanVS == 2) {
+      buttonPickingReady.setAttribute("class", "buttonInScan buttonInScanSelected");
+    } else if (inScanVS == 3) {
+      buttonAll.setAttribute("class", "buttonInScan buttonInScanSelected");
+    } else if (inScanVS == 4) {
+      buttonNone.setAttribute("class", "buttonInScan buttonInScanSelected");
+    }
+
+    // var myTableArrayPickingNotYetPickedTable = [];
+    $("table#PickingNotYetPickedTable tr").each(function() {
+      var arrayOfThisRow = [];
+      var tableData = $(this).find('th, td');
+      if (tableData.length > 0) {
+        tableData.each(function() { arrayOfThisRow.push($(this).text().trim()); });
+        myTableArrayPickingNotYetPickedTable.push(arrayOfThisRow);
+      }
+    });
+
+    // var myTableArrayReadyToPickTable= [];
+    $("table#ReadyToPickTable tr").each(function() {
+      var arrayOfThisRow = [];
+      var tableData = $(this).find('th, td');
+      if (tableData.length > 0) {
+        tableData.each(function() { arrayOfThisRow.push($(this).text().trim()); });
+        myTableArrayReadyToPickTable.push(arrayOfThisRow);
+      }
+    });
+
+    //var myTableArray = [];
+    $("table#TableInScanner tr").each(function() {
+      var arrayOfThisRow = [];
+      var tableData = $(this).find('th, td');
+      if (tableData.length > 0) {
+        tableData.each(function() { arrayOfThisRow.push($(this).text().trim()); });
+        myTableArray.push(arrayOfThisRow);
+      }
+    });
+
+    temp = myTableArray[0]
+    CPT = temp.slice(2, -1);
+    temp = []
+    CPT.forEach(element => temp.push(element.replace('\n                                                ', ' ')));
+    CPT = []
+    temp.forEach(element => {
+      var indeex = element.indexOf(":");
+      var newDate = element.substring(0, indeex-2) + new Date().getFullYear() + " " + element.substring(indeex-2);
+      var datee = new Date(newDate); // some mock date
+      // console.log(newDate)
+      var milliseconds = datee.getTime().toString();
+      // console.log(milliseconds)
+      milliseconds = milliseconds.substring(0, 10)
+      // console.log(milliseconds)
+      CPT.push(milliseconds)
+      // CPT.push(newDate)
+    });
+
+    ProcessPath = myTableArray.slice(1, -1);
+    temp = []
+    ProcessPath.forEach(element => temp.push(element[0]));
+    ProcessPath = temp
+
+    $("table#TableInScanner tr").each(function() {
+      var arrayOfThisRow = [];
+      var tableData = $(this).find('td');
+      if (tableData.length > 0) {
+        tableData.each(function() {
+          $(this)[0].innerHTML = ""
+        });
+      }
+    });
+
+    TableTotal = [];
+    var arrayOfThisRow = [];
+    $("table#TotalTable tr").each(function() { [];
+                                              arrayOfThisRow = [];
+                                              var tableData = $(this).find('td');
+                                              if (tableData.length > 0) {
+                                                tableData.each(function() {
+                                                  arrayOfThisRow.push(parseInt($(this).text().trim()))
+                                                });
+                                                TableTotal.push(arrayOfThisRow.slice(2));
+                                              }
+                                              });
+    TableTotal.push(arrayOfThisRow.slice(2));
+
+    TableCharge = [];
+    $("table#PredictedChargeTable tr").each(function() {
+      var arrayOfThisRow = [];
+      var tableData = $(this).find('td');
+      if (tableData.length > 0) {
+        tableData.each(function() {
+          arrayOfThisRow.push(parseInt($(this).text().trim()))
+        });
+        TableCharge.push(arrayOfThisRow.slice(2));
+      }
+    });
+    Trow = TableTotal.length
+    Tcol = TableTotal[0].length
+
+    TableInScanner = []
+    var temp3 = []
+    TableTotal.forEach(element => {
+      var temp2 = []
+      element.forEach(element2 => {
+        temp2.push(0);
+      });
+      temp3.push(temp2)
+    });
+    TableInScanner = [...temp3]
+
+    rooww = 0;
+    var CPT2 = [...CPT]
+    CPT2.unshift('0')
+    $("table#TableInScanner tr").each(function() {
+      indice = 0;
+      var tableData = $(this).find('td');
+      if (tableData.length > 0) {
+        tableData.each(function() {
+          // $(this)[0].innerHTML = "d";
+          $(this)[0].setAttribute("id", CPT2[indice] + "-" + ProcessPath[rooww]);
+          indice = indice + 1
+        });
+        rooww = rooww + 1
+      }
+    });
+  }
+
+  /*------------------------------
+  -  Highlight Process Path
+  */
+  if (_action == 'ExSD'){
+    const keyPUAGoal = 'ExSD_PUA_Goal'
+    let puaGoal = parseInt(localStorage.getItem(keyPUAGoal));
+    if(isNaN(puaGoal)) { puaGoal = 0; }
+
+    var total_pickers = 0
+    {
+      const style = 'background-color: #f4c99c; min-width: 50px; text-align: center;';
+      $('#PickingNotYetPickedTable tbody tr.header-row')
+        .append(`<th style="${style}">In Scan</th>`)
+        .append(`<th style="${style}">Pickers</th>`)
+        .append(`<th style="${style}">PUA<br />
+                  <span class="display" style="position: relative; width: 100%; min-width: 5em; display: inline-block;">
+                    <span class="value">(${puaGoal})</span>
+                    <span class="icons" style="position: absolute; top: -1.5em; right: 0; width: 1em;">
+                      <a class="edit" href="#"><svg fill="#000000" height="100%" width="100%" version="1.1" viewBox="0 0 512 512" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><path d="M 21.38753,398.26322 0,512 113.73845,490.61247 421.43068,182.92023 329.07977,90.569318 Z m 80.11516,69.16509 -70.115167,13.18417 13.184163,-70.11517 284.508084,-284.50808 56.931,56.931 z" id="path1" style="stroke-width:1.66973" /><path d="M 419.65075,0 350.34541,69.305348 442.69465,161.65459 512,92.349247 Z m -33.88543,69.305348 33.88543,-33.885435 56.92934,56.929334 -33.88544,33.885433 z" id="path2" style="stroke-width:1.66973" /></svg></a>
+                    </span>
+                  </span>
+                  <span class="edit" style="position: relative; width: 100%; min-width: 5em; display: none;">
+                    <span class="value"><input type="text" inputmode="numeric" pattern="\\d*" placeholder="${puaGoal}" value="${puaGoal}" style="text-align: center; border: none; padding: 0; width: 2em;"/></span>
+                    <span class="icons" style="position: absolute; top: -1.5em; right: 0; width: 1em;">
+                      <a class="save" href="#"><svg fill="#000000" height="100%" width="100%" version="1.1" viewBox="0 0 512 512" xml:space="preserve" id="svg1" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><path style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" d="M 11.053306,289.04469 135.50136,489.08691 501.6402,7.8824327" id="path1" /></svg></a>
+                      <br />
+                      <a class="cancel" href="#"><svg fill="#000000" height="100%" width="100%" version="1.1" viewBox="0 0 512 512" xml:space="preserve" id="svg1" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><path style="fill:none;stroke:#000000;stroke-width:40;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" d="M 502.57222,9.4277609 9.4277592,502.57224" id="path1" /><path style="fill:none;stroke:#000000;stroke-width:26;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" d="M 9.4277622,9.4277579 502.57222,502.57224" id="path2" /></svg></a>
+                    </span>
+                  </span>
+                </th>`)
+        .append(`<th style="${style}">Pick Rate<br />Actual</th>`)
+        .append(`<th style="${style}">AutoFlow<br />Pick Rate Avg</th>`)
+        .append(`<th style="${style}">Pick Rate<br />Delta</th>`)
+        .append(`<th style="${style}">TUR<br/>Actual</th>`)
+        .append(`<th style="${style}">AutoFlow<br />Pick TUR</th>`)
+        .append(`<th style="${style}">TUR<br />Delta</th>`)
+        .append(`<th style="${style}">Batches<br />Active</th>`)
+        .append(`<th style="${style}">Batch<br />Limit</th>`)
+        .append(`<th style="${style}">Totes<br />Active</th>`)
+        .append(`<th style="${style}">Tote<br />Limit</th>`)
+        .append(`<th style="${style}">TUR Requested<br />Picker</th>`);
+
+      const puaEditLinks = document.querySelectorAll('#PickingNotYetPickedTable > tbody > tr.header-row > th > span > span.icons > a');
+      puaEditLinks.forEach( (link) => {
+        link.onclick = (event) => {
+          const target = event.target.closest('a');
+          const cell = target.closest('th');
+          const spanEdit = cell.querySelector(':scope > span.edit');
+          const spanDisplay = cell.querySelector(':scope > span.display');
+          const input = spanEdit.querySelector(':scope > .value > input');
+
+          if(target.classList.contains('edit')) {
+            // hide static value and display input field
+            spanEdit.style.display = 'inline-block';
+            spanDisplay.style.display = 'none';
+            input.focus();
+            input.select();
+          } else {
+            // hide input field and display static value
+            spanEdit.style.display = 'none';
+            spanDisplay.style.display = 'inline-block';
+
+            if(target.classList.contains('save')) {
+              puaGoal = parseInt(input.value);
+              if(isNaN(puaGoal)) { puaGoal = parseInt(input.placeholder); }
+              if(isNaN(puaGoal)) { puaGoal = 0; }
+              if(puaGoal < 0) { puaGoal = 0; }
+
+              localStorage.setItem(keyPUAGoal, puaGoal);
+
+              const static = spanDisplay.querySelector(':scope > .value');
+              static.innerText = `(${puaGoal})`;
+
+              // Recolor the PUA column
+              const pathRows = document.querySelectorAll('#PickingNotYetPickedTable > tbody > tr:not(.header-row)');
+              pathRows.forEach( (row) => {
+                const path = row.querySelector(':scope > th:first-child').innerText.trim().toLowerCase();
+                const cell = row.querySelector(`:scope > td.pua_${path}`);
+                const puaActual = parseInt(cell.innerText);
+                if(puaActual < puaGoal){
+                  const puaGoal90 = Math.floor(puaGoal * 0.9);
+                  const hue = (puaActual >= puaGoal90 ? 45 : 0);
+                  cell.style.backgroundColor = `hsl(${hue}, 100%, 90%)`;
+                  cell.style.color = `hsl(${hue}, 100%, 20%)`;
+                } else {
+                  cell.style.backgroundColor = '';
+                  cell.style.color = '';
+                }
+              });
+            } else if(target.classList.contains('cancel')) {
+              // NOP -- don't make any changes
+            }
+          }
+
+          return false; // prevent the browser from following the link
+        }
+      });
+
+      const puaInputs = document.querySelectorAll('#PickingNotYetPickedTable > tbody > tr.header-row > th > span.edit > span.value > input');
+      puaInputs.forEach( (input) => {
+        input.addEventListener('keyup', (event) => {
+          switch(event.key) {
+            case 'Enter':
+              {
+                // Call "click" on the save icon/element
+                const puaSaveLink = document.querySelector('#PickingNotYetPickedTable > tbody > tr.header-row > th > span > span.icons > a.save');
+                puaSaveLink.dispatchEvent(new Event('click'));
+              }
+              break;
+
+            case 'Escape':
+              {
+                // Call "click" on the cancel icon/element
+                const puaCancelLink = document.querySelector('#PickingNotYetPickedTable > tbody > tr.header-row > th > span > span.icons > a.save');
+                puaCancelLink.dispatchEvent(new Event('click'));
+              }
+              break;
+          }
+        });
+      });
+    }
+
+    $('#PickingNotYetPickedTable tbody tr:not(".header-row")').each(function(){
+      var ppath = $.trim($(this).find('th:first').text()).toLowerCase();
+      $(this).find('th:first').addClass('th_' + ppath);
+      $(this)
+        .addClass('tr_' + ppath)
+        .append('<td class="inscan_' + ppath + '"></td>')
+        .append('<td class="pickers_' + ppath + '"></td>')
+        .append('<td class="pua_' + ppath + '"></td>')
+        .append('<td class="pickrate_' + ppath + '"></td>')
+        .append('<td class="pra_' + ppath + '"></td>')
+        .append('<td class="prd_' + ppath + '"></td>')
+        .append('<td class="uph_' + ppath + '"></td>')
+        .append('<td class="tur_' + ppath + '"></td>')
+        .append('<td class="turd_' + ppath + '"></td>')
+        .append('<td class="batches_' + ppath + '"></td>')
+        .append('<td class="batchlimit_' + ppath + '"></td>')
+        .append('<td class="totes_' + ppath + '"></td>')
+        .append('<td class="totelimit_' + ppath + '"></td>')
+        .append('<td class="caltur_' + ppath + '"></td>');
+    });
+
+    $('#TotalTable tr:first').append('<th class="tesst">Pickers</th>');
+    $('#TotalTable tr:not(:first)').each(function(){
+      var ppath = $.trim($(this).find('th:first').text()).toLowerCase();
+      $(this).append('<td class="tesst pickers_' + ppath + '">0</td>');
+    });
+
+    // $('#TotalTable tr:first').append('<th class="tesst">Batch<br>Act/Rdy/Limit</th>');
+    // $('#TotalTable tr:not(:first)').each(function(){
+    //   var ppath = $.trim($(this).find('th:first').text()).toLowerCase();
+    //   $(this).append('<td class="tesst batchinfos_' + ppath + '">0</td>');
+    // });
+
+    $('#TotalTable tr:first').append('<th class="">Status</th>');
+    $('#TotalTable tr:not(:first)').each(function(){
+      var ppath = $.trim($(this).find('th:first').text()).toLowerCase();
+      $(this).append('<td class="status_' + ppath + '"></td>');
+    });
+
+    //Open Link
+    $('#TotalTable tr:first').append('<th></th>');
+    $('#TotalTable tr:not(:first)').each(function(){
+      var ppath = $.trim($(this).find('th:first').text());
+      if (ppath != "Total") {
+        $(this).append('<td class="link_' + ppath + '">  <a href="https://process-path.' + _region2 + '.picking.aft.a2z.com/fc/' + _fcname + '/properties/process-path/' + ppath +'" target="_blank">⚙️</a>  </td>');
+      } else {
+        $(this).append('<td class="link_' + ppath + '"></td>');
+      }
+    });
+
+    if (true){
+      // console.log("request")
+      GM_xmlhttpRequest({
+        url: "https://picking-console." + _region2 + ".picking.aft.a2z.com/api/fcs/" + _fcname + "/process-paths/information",
+        headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+        onload: function(response) {
+          var js = JSON.parse(response.responseText);
+          if (typeof js.processPathInformationMap != 'undefined'){
+            $.each(js.processPathInformationMap, function(ppName, obj){
+              var _ProcessPath = ppName.toLowerCase();
+              var _Status = obj.Status.toLowerCase();
+              var iconnn = "❌" //JB
+              // console.log("https://picking-console." + _region2 + ".picking.aft.a2z.com/api/fcs/" + _fcname + "/processpaths/details");
+              // console.log(js);
+              if (_ProcessPath != ''){
+                if (_Status == 'active' || _Status == "active_collatedisabled"){
+                  if (_Status == 'active') {
+                    iconnn = "✔️"
+                  } else {
+                    iconnn = "✔️❗"
+                  }
+                  $("th:contains('" + ppName + "')").css("background-color", "#ccffbf").parent().css("background-color", "#ccffbf");
+                  $('.tr_' + _ProcessPath).css("background-color", "#ccffbf");
+                  $('.th_' + _ProcessPath).css("background-color", "#ccffbf");
+                  $('.totes_' + _ProcessPath).text(obj.ToteCount);
+                  $('.pickers_' + _ProcessPath).text(obj.PickerCount);
+                  $('.pickrate_' + _ProcessPath).text(Math.trunc(obj.UnitsPerHour/obj.PickerCount));
+                  $('.uph_' + _ProcessPath).text(obj.UnitsPerHour);
+                  $('.batches_' + _ProcessPath).text(obj.BatchCount);
+                  $('.caltur_' + _ProcessPath).text("");
+                  if ($('.pickers_' + _ProcessPath).text().length > 0) {
+                    total_pickers = total_pickers + parseInt(obj.PickerCount)
+                    $('.pickers_total').text(total_pickers);
+                  }
+
+                  {
+                    const picksTotal = parseInt($(`.tr_${_ProcessPath} > :nth-child(2)`).text());
+                    if(picksTotal > 0) {
+                      const pickerCount = parseInt(obj.PickerCount);
+
+                      // Find the "PickingNotYetPickedNonPickable" value so we can subtract it from the Total Pickable value
+                      let picksNotPickable = 0; // Initialize, assuming the matching Process Path will not be found
+                      {
+                        const notPickableRows = document.querySelectorAll('#PickingNotYetPickedHardCappedTable > tbody > tr:not(.header-row, .grand-total)');
+                        notPickableRows.forEach( (row) => {
+                          const rowPPName = row.querySelector(':scope > th.row-label').innerText;
+                          if(rowPPName == ppName) {
+                            picksNotPickable = parseInt(row.querySelector(':scope > :nth-child(2)').innerText);
+                          }
+                        });
+                      }
+
+                      // Find the "ReadyToPickUncontrained" value for "Multi" picks we can add it to the Total Pickable value
+                      let picksMultisReadyToPickUncontrained = 0; // Initialize, assuming the matching Process Path will not be found
+                      {
+                        // 2024-09-05 connrand - This list might be missing a few items -- I have not found an authoritative list of "Multi" Process Paths.
+                        // I looked at [Process Path Configurations](https://process-path.na.picking.aft.a2z.com/fc/LGB4/configurations),
+                        // but I didn't see a clear set of conditions to identify "Multi" Process Paths.
+                        // And that page only lists the Process Paths configured for that site.  Other sites may have additional Process Paths.
+                        // We can add/remove items as needed. @shradere requested this change - review revisions by him first.
+                        const multiPPNames = [
+                          'PPFracsMultiSLAM',
+                          'PPMultiBldgWide',
+                          'PPMultiBldgWideOP',
+                          'PPMultiBldgWideOPVNA',
+                          'PPMultiCASEPallet',
+                          'PPMultiFloor',
+                          'PPMultiMCF',
+                          'PPMultiWrap',
+                        ];
+                        if(multiPPNames.includes(ppName)) {
+                          const picksMultisReadyToPickUncontrainedRows = document.querySelectorAll('#ReadyToPickUnconstrainedTable > tbody > tr:not(.header-row, .grand-total)');
+                          picksMultisReadyToPickUncontrainedRows.forEach( (row) => {
+                            const rowPPName = row.querySelector(':scope > th.row-label').innerText;
+                            if(rowPPName == ppName) {
+                              picksMultisReadyToPickUncontrained = parseInt(row.querySelector(':scope > :nth-child(2)').innerText);
+                            }
+                          });
+                        }
+                      }
+
+                      // This formula determined by @shradere and @camestab on 2024-09-05
+                      const picksAdjusted = (picksTotal - picksNotPickable) + picksMultisReadyToPickUncontrained
+
+                      let puaActual = Math.floor(picksAdjusted / pickerCount);
+                      if(!isFinite(puaActual) || isNaN(puaActual)) { puaActual = 0; }
+                      $('.pua_' + _ProcessPath).text(puaActual);
+                      if(puaActual < puaGoal){
+                        const puaGoal90 = Math.floor(puaGoal * 0.9);
+                        const hue = (puaActual >= puaGoal90 ? 45 : 0);
+                        $('.pua_' + _ProcessPath).css({
+                          'background-color': `hsl(${hue}, 100%, 90%)`,
+                          'color': `hsl(${hue}, 100%, 20%)`,
+                        });
+                      }
+                    }
+                  }
+                } else {
+                  iconnn = "❌"
+                }
+
+                $('.status_' + _ProcessPath).text(iconnn);
+                // $('#TotalTable tr').each(function() {
+                //   if ($.trim($(this).find('th:first').text()).toLowerCase() == _ProcessPath){
+                //     $(this).find('td:last').text(iconnn); //JB //_Status
+                //   }
+                // });
+              }
+            });
+
+            reloadInScan("")
+          }
+        }
+      });
+    }
+  }
+
+  /*
+  -  Highlight Process Path
+  ------------------------------*/
+
+  if (_fcname == 'ORY1' && _action == 'ExSD' && document.URL.indexOf('shipmentTypes=CUSTOMER_SHIPMENTS') > -1){
+    var _url = 'https://monitorportal.amazon.com/mws?Action=GetMetricData';
+    _url += '&Version=2007-07-07';
+    _url += '&SchemaName1=Service&DataSet1=Prod&Marketplace1=ORY1&HostGroup1=ALL&Host1=ALL&ServiceName1=FCOutboundModelServiceCreation&MethodName1=ALL&Client1=ALL&MetricClass1=NONE&Instance1=NONE&Metric1=BufferLimit.PPMultiMedium.REBIN.MaxUnits&Period1=FiveMinute&Stat1=avg&Label1=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiMedium.REBIN.MaxUnits';
+    _url += '&SchemaName2=Service&Metric2=BufferLimit.PPMultiMedium.REBIN.MinUnits&Label2=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiMedium.REBIN.MinUnits';
+    _url += '&SchemaName3=Service&Metric3=PlannedLaborGroupHeadcount.REBIN%3APPMultiMedium&Label3=FCOutboundModelServiceCreation%20ALL%20PlannedLaborGroupHeadcount.REBIN%3APPMultiMedium';
+    _url += '&SchemaName4=Service&ServiceName4=SkynetCapacityModelService&MethodName4=RetrieveRodeoBuffers&Metric4=WorkPoolSize.PPMultiMedium.PickingPicked&Label4=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPMultiMedium.PickingPicked';
+    _url += '&SchemaName5=Service&Metric5=WorkPoolSize.PPMultiMedium.RebinBuffered&Label5=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPMultiMedium.RebinBuffered';
+    _url += '&SchemaName6=Service&ServiceName6=FCOutboundModelServiceCreation&MethodName6=ALL&Metric6=BufferLimit.PPMultiMedium.PACK.MaxUnits&Label6=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiMedium.PACK.MaxUnits';
+    _url += '&SchemaName7=Service&Metric7=BufferLimit.PPMultiMedium.PACK.MinUnits&Label7=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiMedium.PACK.MinUnits';
+    _url += '&SchemaName8=Service&Metric8=PlannedLaborGroupHeadcount.PACK%3APPMultiMedium&Label8=FCOutboundModelServiceCreation%20ALL%20PlannedLaborGroupHeadcount.PACK%3APPMultiMedium';
+    _url += '&SchemaName9=Service&ServiceName9=SkynetCapacityModelService&MethodName9=RetrieveRodeoBuffers&Metric9=WorkPoolSize.PPMultiMedium.Sorted&Label9=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPMultiMedium.Sorted';
+    _url += '&SchemaName10=Service&ServiceName10=FCOutboundModelServiceCreation&MethodName10=ALL&Metric10=BufferLimit.PPSingleZone.PACK.MaxUnits&Label10=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPSingleZone.PACK.MaxUnits';
+    _url += '&SchemaName11=Service&Metric11=BufferLimit.PPSingleZone.PACK.MinUnits&Label11=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPSingleZone.PACK.MinUnits';
+    _url += '&SchemaName12=Service&Metric12=PlannedLaborGroupHeadcount.PACK%3APPSingleZone&Label12=FCOutboundModelServiceCreation%20ALL%20PlannedLaborGroupHeadcount.PACK%3APPSingleZone';
+    _url += '&SchemaName13=Service&ServiceName13=SkynetCapacityModelService&MethodName13=RetrieveRodeoBuffers&Metric13=WorkPoolSize.PPSingleZone.PickingPicked&Label13=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPSingleZone.PickingPicked';
+    _url += '&SchemaName14=Service&ServiceName14=FCOutboundModelServiceCreation&MethodName14=ALL&Metric14=BufferLimit.PPMultiWrapZone.PACK.MaxUnits&Label14=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiWrapZone.PACK.MaxUnits';
+    _url += '&SchemaName15=Service&Metric15=BufferLimit.PPMultiWrapZone.PACK.MinUnits&Label15=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiWrapZone.PACK.MinUnits';
+    _url += '&SchemaName16=Service&Metric16=PlannedLaborGroupHeadcount.PACK%3APPMultiWrapZone&Label16=FCOutboundModelServiceCreation%20ALL%20PlannedLaborGroupHeadcount.PACK%3APPMultiWrapZone';
+    _url += '&SchemaName17=Service&ServiceName17=SkynetCapacityModelService&MethodName17=RetrieveRodeoBuffers&Metric17=WorkPoolSize.PPMultiWrapZone.RebinBuffered&Label17=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPMultiWrapZone.RebinBuffered';
+    _url += '&SchemaName18=Service&Metric18=WorkPoolSize.PPMultiWrapZone.PickingPicked&Label18=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPMultiWrapZone.PickingPicked';
+    _url += '&SchemaName19=Service&Metric19=WorkPoolSize.PPMultiWrapZone.Sorted&Label19=SkynetCapacityModelService%20RetrieveRodeoBuffers%20WorkPoolSize.PPMultiWrapZone.Sorted';
+    _url += '&SchemaName20=Service&ServiceName20=FCOutboundModelServiceCreation&MethodName20=ALL&Metric20=BufferLimit.PPMultiWrapZone.REBIN.MaxUnits&Label20=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiWrapZone.REBIN.MaxUnits';
+    _url += '&SchemaName21=Service&Metric21=BufferLimit.PPMultiWrapZone.REBIN.MinUnits&Label21=FCOutboundModelServiceCreation%20ALL%20BufferLimit.PPMultiWrapZone.REBIN.MinUnits';
+    _url += '&SchemaName22=Service&Metric22=PlannedLaborGroupHeadcount.REBIN%3APPMultiWrapZone&Label22=FCOutboundModelServiceCreation%20ALL%20PlannedLaborGroupHeadcount.REBIN%3APPMultiWrapZone';
+    _url += '&FunctionExpression1=M1*M3%2BM6*M8%2BM10*M12%2BM14*M16%2BM20*M22&FunctionLabel1=MaxUnits%20%5Bcurrent%3A%20%7Blast%7D%5D&FunctionYAxisPreference1=left&FunctionColor1=fff';
+    _url += '&FunctionExpression2=M2*M3%2BM7*M8%2BM11*M12%2BM15*M16%2BM21*M22&FunctionLabel2=MinUnits%20%5Bcurrent%3A%20%7Blast%7D%5D&FunctionYAxisPreference2=left&FunctionColor2=fff';
+    _url += '&FunctionExpression3=M4%2BM5%2BM9%2BM13%2BM17%2BM18%2BM19&FunctionLabel3=Buffer%20%5Bcurrent%3A%20%7Blast%7D%5D&FunctionYAxisPreference3=left&FunctionColor3=%23ff0000&actionSource=dashboard';
+    _url += '&HeightInPixels=350&WidthInPixels=1000&GraphTitle=ORY1%20-%20TOTAL%20WIP&ShowGaps=false';
+    _url += '&TZ=Europe%2FParis@TZ%3A%20Paris&StartTime1=-PT4H&EndTime1=-PT0H';
+
+    // console.log("request")
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: _url,
+      dataType: 'xml',
+      onload: function(response) {
+        var _MaxUnits = 0;
+        var _MinUnits = 0;
+        $(response.responseText).find('StatisticSeries').each(function(){
+          if ($(this).find('Label').text().indexOf('MaxUnits') > -1){
+            _MaxUnits = Number($(this).find('Datapoint').last().find('Val').text());
+          }
+          if ($(this).find('Label').text().indexOf('MinUnits') > -1){
+            _MinUnits = Number($(this).find('Datapoint').last().find('Val').text());
+          }
+        });
+        var _ActualBuffer = $("#TotalTable th:contains('WorkInProgress Subtotal')").parent().find('td:first');
+        if (Number(_ActualBuffer.text()) >= _MinUnits && Number(_ActualBuffer.text()) <= _MaxUnits){
+          _ActualBuffer.css('background', '#aaffaa');
+        } else {
+          _ActualBuffer.css('background', '#ffaaaa');
+        }
+        //console.log(Number(_ActualBuffer.text()), _MinUnits, _MaxUnits);
+      }
+    });
+    return false;
+  }
+
+  /*
+  -  ItemList
+  ------------------------------*/
+
+  if (_action == 'ItemList' || _action == 'Search') {
+    // $(".result-table").before( '<div class="MissingColumn" style="font-size: 10px; color: white; white-space: break-spaces">Following a change announcement from the team in charge of the Picking console, I had to disable some features of the script to avoid server overload. For example, pick refuse and TSO data are no longer supported. In case of latency with the Picking Console, please disable the script. It is not to be excluded that an update will be available in the coming weeks to restore all features</div>');
+
+    if(userLang != "en-US") {
+      $(".result-table").before( '<div class="MissingColumn">To run the script you need to change your internet browser language for displaying web pages in "English - USA (en-US)". <a href="https://support.mozilla.org/en-US/kb/use-firefox-another-language?redirectslug=use-firefox-interface-other-languages-language-pack&redirectlocale=en-US" target="_blank">Firefox</a>  /  <a href="https://support.google.com/chrome/answer/173424?hl=en-GB&co=GENIE.Platform%3DDesktop" target="_blank">Chrome</a></div>');
+    }
+    // PickingNotYetPicked units state
+    if ($('.result-table tr').length <= PickingNotYetPickedUnitsStateLimit){
+      _RowCountLimit = true;
+    }
+
+    if (document.URL.indexOf('shipmentType=CUSTOMER_SHIPMENTS') > -1 || document.URL.indexOf('shipmentType=TRANSSHIPMENTS') < 0){
+      _shipmentType = 'CUSTOMER_SHIPMENT';
+
+      $('.result-table thead tr th').each(function (index){
+        if ($.inArray($.trim($(this).text()), columnnamesAddCopy) > -1){
+          _colPosAddCopy[$.trim($(this).text())] = index + 1;
+        }
+      });
+
+      const currcolmun = [];
+      let remainingColumn = [];
+      let remainingColumnsName = "";
+
+      $('.result-table thead tr th').each(function (index){
+        if ($.inArray($.trim($(this).text()), columnnames) > -1){
+          _colPos[$.trim($(this).text())] = index + 1;
+          currcolmun.push($.trim($(this).text()))
+        };
+      });
+
+      remainingColumn = columnnames.filter(ele => ($.inArray(ele, currcolmun) == -1));
+      remainingColumn.forEach(function (item, index) {
+        remainingColumnsName = remainingColumnsName + item + ","
+      });
+
+      if (Object.keys(_colPos).length != columnnames.length){
+        $(".result-table").before( '<div class="MissingColumn">Please activate in options the columns: ' + remainingColumnsName + '</div>');
+        throw 'Please activate in options the columns: ' + remainingColumnsName;
+      }
+      _colPos['Transfer Request ID'] = '-1';
+
+      //CopyButton Checkbox
+      var copyButton = ' <input id="ShowCopyButtons" type="checkbox" class="checkbox" style="opacity: 1; font-size=13px; display: inline; width: 13px; height: 13px;" checked="checked"><label for="ShowCopyButtons" style="opacity: 1; font-size=13px; display: inline; margin-left: 4px;">📋 Show Copy button</label>'
+      $( copyButton ).insertBefore( ".shipment-list-tabs" );
+
+      var copyButton_Value = GM_getValue("copyButton_Value", false);
+
+      $("#ShowCopyButtons").prop("checked", copyButton_Value);
+      $("#ShowCopyButtons").click(function() {
+        GM_setValue("copyButton_Value", !copyButton_Value);
+        copyButton_Value = !copyButton_Value
+        //location.reload();
+        if (copyButton_Value) {
+          addCopyButton()
+        } else {
+          $( ".Copyy" ).remove();
+        }
+      });
+
+      $('.result-table tr').each(function (index) {
+        if (index == 0){
+          if (_RowCountLimit){
+            // add new column header
+            $(this).append('<th style="text-align:center">Unit state</th>');
+          }
+        } else {
+          var _condition =        $.trim($(this).find('td:nth-child('+_colPos['Condition']+')').text());
+          var _outerscannableid = $.trim($(this).find('td:nth-child('+_colPos['Outer Scannable ID']+')').text());
+          var _pickbatchid =      $.trim($(this).find('td:nth-child('+_colPos['Pick Batch ID']+')').text());
+          var _shipmentid =       $.trim($(this).find('td:nth-child('+_colPos['Shipment ID']+')').text());
+          var _scannableid =      $.trim($(this).find('td:nth-child('+_colPos['Scannable ID']+')').text());
+          var _workpool =         $.trim($(this).find('td:nth-child('+_colPos['Work Pool']+')').text());
+          var _fnsku =            $.trim($(this).find('td:nth-child('+_colPos['FN SKU']+')').text());
+          var _demandID =         $.trim($(this).find('td:nth-child('+_colPos['Demand ID']+')').text());
+
+          //Copy button
+          if (copyButton_Value) {
+            $(this).find('td:nth-child('+_colPos['Shipment ID']+') .relative').prepend( '<div class="Copyy Copy_' + _shipmentid + '_' + index + '">📋</div>');
+            var elements = document.getElementsByClassName("Copy_" + _shipmentid + '_' + index);
+            for (var i = 0; i < elements.length; i++) {
+              elements[i].addEventListener("click", function() {
+                GM_setClipboard (_shipmentid);
+                var bg_copy = $(".Copy_" + _shipmentid + '_' + index).css("background-color");
+                $(".Copy_" + _shipmentid + '_' + index).css("background-color", "lime");
+                setTimeout(function() {
+                  $(".Copy_" + _shipmentid + '_' + index).css("background-color", bg_copy);
+                }, 500)
+              });
+            }
+            $(this).find('td:nth-child('+_colPos['FN SKU']+') .relative').prepend( '<div class="Copyy Copy_' + _fnsku + '_' + index + '">📋</div>');
+            elements = document.getElementsByClassName("Copy_" + _fnsku + '_' + index);
+            for (i = 0; i < elements.length; i++) {
+              elements[i].addEventListener("click", function() {
+                GM_setClipboard (_fnsku);
+                var bg_copy = $(".Copy_" + _fnsku + '_' + index).css("background-color");
+                $(".Copy_" + _fnsku + '_' + index).css("background-color", "lime");
+                setTimeout(function() {
+                  $(".Copy_" + _fnsku + '_' + index).css("background-color", bg_copy);
+                }, 500)
+              });
+            }
+            $(this).find('td:nth-child('+_colPos['Scannable ID']+') .relative').prepend( '<div class="Copyy Copy_' + _scannableid + '_' + index + '">📋</div>');
+            elements = document.getElementsByClassName("Copy_" + _scannableid + '_' + index);
+            for (i = 0; i < elements.length; i++) {
+              elements[i].addEventListener("click", function() {
+                GM_setClipboard (_scannableid);
+                var bg_copy = $(".Copy_" + _scannableid + '_' + index).css("background-color");
+                $(".Copy_" + _scannableid + '_' + index).css("background-color", "lime");
+                setTimeout(function() {
+                  $(".Copy_" + _scannableid + '_' + index).css("background-color", bg_copy);
+                }, 500)
+              });
+            }
+            if (_pickbatchid != "") {
+              $(this).find('td:nth-child('+_colPos['Pick Batch ID']+') .relative').prepend( '<div class="Copyy Copy_' + _pickbatchid + '_' + index + '">📋</div>');
+              elements = document.getElementsByClassName("Copy_" + _pickbatchid + '_' + index);
+              for (i = 0; i < elements.length; i++) {
+                elements[i].addEventListener("click", function() {
+                  GM_setClipboard (_pickbatchid);
+                  var bg_copy = $(".Copy_" + _pickbatchid + '_' + index).css("background-color");
+                  $(".Copy_" + _pickbatchid + '_' + index).css("background-color", "lime");
+                  setTimeout(function() {
+                    $(".Copy_" + _pickbatchid + '_' + index).css("background-color", bg_copy);
+                  }, 500)
+                });
+              }
+            }
+          }
+
+          if ((_condition == '7' || _condition == '15' || _condition == '704') && _shipmentid != ''){
+            if ($.inArray(_shipmentid, _Shipments) == -1){ _Shipments.push(_shipmentid); }
+          }
+          if ((_condition == '4' || _condition == '704') && _outerscannableid != ''){
+            if ($.inArray(_outerscannableid, _RebinWall) == -1){ _RebinWall.push(_outerscannableid); _Batches[_outerscannableid] = _pickbatchid; }
+          }
+          if (_condition == '1320' && _shipmentid != ''){
+            if ($.inArray(_shipmentid, _Shipments1320) == -1) { _Shipments1320.push(_shipmentid); }
+          }
+          if (_outerscannableid == 'cvAtPM00002' || _outerscannableid.substring(0, 3) == 'pmP'){
+            if ($.inArray(_scannableid + '|' + _shipmentid + '|' + _fnsku + '|0|CUSTOMER_SHIPMENT', _Totes) == -1) { _Totes.push(_scannableid + '|' + _shipmentid + '|' + _fnsku + '|0|CUSTOMER_SHIPMENT'); }
+          }
+          if (_RowCountLimit){
+            if (_workpool.indexOf('PickingNotYetPicked') > -1 && _workpool != 'PickingNotYetPickedHardCapped'){
+              // add new column cell
+              $(this).append('<td class="us_' + _shipmentid + _fnsku + _scannableid + '"></td>');
+              if ($.inArray(_shipmentid + '|' + _fnsku + '|' + _scannableid + '|' + _scannableid, _demandID) == -1) { _PickingNotYetPicked.push(_shipmentid + '|' + _fnsku + '|' + _scannableid + '|' + _demandID); }
+            } else {
+              // add new column cell
+              $(this).append('<td class="us_xx"></td>');
+            }
+          }
+        }
+      });
+    }
+
+    if (document.URL.indexOf('shipmentType=TRANSSHIPMENTS') > -1){
+      _shipmentType = 'TRANSSHIPMENT';
+
+      // $('.result-table thead tr th').each(function (index){
+      //   if ($.inArray($.trim($(this).text()), TSOcolumnnames) > -1){
+      //     _colPos[$.trim($(this).text())] = index + 1;
+      //     currcolmun.push($.trim($(this).text()));
+      //   }
+      // });
+      // if (Object.keys(_colPos).length != TSOcolumnnames.length){
+      //   throw 'One or more columns are missing';
+      // }
+
+      const currcolmun = [];
+      let remainingColumn = [];
+      let remainingColumnsName = "";
+
+      $('.result-table thead tr th').each(function (index){
+        if ($.inArray($.trim($(this).text()), TSOcolumnnames) > -1){
+          _colPos[$.trim($(this).text())] = index + 1;
+          currcolmun.push($.trim($(this).text()));
+        };
+      });
+
+      remainingColumn = TSOcolumnnames.filter(ele => ($.inArray(ele, currcolmun) == -1));
+      remainingColumn.forEach(function (item, index) {
+        remainingColumnsName = remainingColumnsName + item + ","
+      });
+
+      if (Object.keys(_colPos).length != TSOcolumnnames.length){
+        $(".result-table").before( '<div class="MissingColumn">Please activate in options the columns: ' + remainingColumnsName + '</div>');
+        throw 'Please activate in options the columns: ' + remainingColumnsName;
+      }
+
+      _colPos['Shipment ID'] = '-1';
+
+      $('.result-table tr').each(function (index) {
+        if (index == 0){
+          if (_RowCountLimit){
+            // add new column header
+            $(this).append('<th style="text-align: center">Unit state</th>');
+          }
+        } else {
+          var _fnsku =             $.trim($(this).find('td:nth-child('+_colPos['FN SKU']+')').text());
+          var _scannableid =       $.trim($(this).find('td:nth-child('+_colPos['Scannable ID']+')').text());
+          var _outerscannableid =  $.trim($(this).find('td:nth-child('+_colPos['Outer Scannable ID']+')').text());
+          var _workpool =          $.trim($(this).find('td:nth-child('+_colPos['Work Pool']+')').text());
+          var _transferrequestid = $.trim($(this).find('td:nth-child('+_colPos['Transfer Request ID']+')').text());
+          var _apslink =           $.trim($(this).find('td:nth-child('+_colPos['Transfer Request ID']+') a.aps-link').attr('href'));
+          var _shipmentid =        _apslink.split("/").pop();
+          var _demandID = $.trim($(this).find('td:nth-child('+_colPos['Demand ID']+')').text());
+
+          if (_outerscannableid == 'cvAtPM00002' || _outerscannableid.substring(0, 3) == 'pmP'){
+            if ($.inArray(_scannableid + '|' + _shipmentid + '|' + _fnsku + '|' + _transferrequestid + '|TRANSSHIPMENT', _Totes) == -1) { _Totes.push(_scannableid + '|' + _shipmentid + '|' + _fnsku + '|' + _transferrequestid + '|TRANSSHIPMENT'); }
+          }
+
+          if (_RowCountLimit){
+            if (_workpool.indexOf('PickingNotYetPicked') > -1 && _workpool != 'PickingNotYetPickedHardCapped'){
+              // add new column cell
+              $(this).append('<td class="us_' + _shipmentid + _fnsku + _scannableid + '"></td>');
+              if ($.inArray(_shipmentid + '|' + _fnsku + '|' + _scannableid + '|' + _demandID, _PickingNotYetPicked) == -1) { _PickingNotYetPicked.push(_shipmentid + '|' + _fnsku + '|' + _scannableid + '|' + _demandID); }
+            } else {
+              // add new column cell
+              $(this).append('<td class="us_xx"></td>');
+            }
+          }
+        }
+      });
+    }
+
+    // EUCF ACES PSE CHANGE ANNOUNCEMENT
+    // // ------------------
+    // // Get all asins in Overage Walls
+    // // ------------------
+    // if (ShowInOverageWall){
+    $.each(OverageWalls, function(i, wallname) {
+      // console.log("request")
+      GM_xmlhttpRequest({
+        method: "GET",
+        url: "http://fcresearch-" + _region2 + ".aka.amazon.com/" + _fcname + "/results/inventory?s=" + wallname,
+        headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+        onload: function(response) {
+          $(response.responseText).find('#table-inventory tbody tr').each(function () {
+            var asinInOverage = $.trim($(this).find('td:nth-child(3)').text());
+            if ($.inArray(asinInOverage, TblAsinInOverageWall) == -1){
+              TblAsinInOverageWall.push(asinInOverage);
+            }
+          });
+          HighlightAsinInOverage(i);
+        }
+      });
+    });
+    // }
+
+    // ------------------
+    // PickingNotYetPicked
+    // ------------------
+    if (_PickingNotYetPicked.length > 0){
+      if (true){ //_UseNewConsole
+        // New console
+
+        GM_xmlhttpRequest({
+          method: "GET",
+          url: "https://picking-console." + _region2 + ".picking.aft.a2z.com/api/fcs/" + _fcname + "/process-paths/inScanner",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          onload: function(response) {
+            var js = JSON.parse(response.responseText);
+            if (typeof js.inScannerPickList != 'undefined'){
+              currentJS = js.inScannerPickList;
+              // console.log(currentJS)
+
+              $.each(_PickingNotYetPicked, function( i, unitspec ) {
+                //console.log(unitspec)
+                var unitShipment = unitspec.split('|')[0];
+                var unitSKU = unitspec.split('|')[1];
+                var unitBin = unitspec.split('|')[2];
+                var unitDemandID = unitspec.split('|')[3];
+                const result = currentJS.filter(ele => (ele.demandId == unitDemandID && ele.scannableId == unitBin));
+                if (result.length > 0) {
+                  $('.result-table .us_' + unitShipment + unitSKU + unitBin).html('<div style="background: #93fffd">In Scanner: ' + result[0].pickerLogin + '</div>');
+                }
+                //console.log(result)
+              });
+            }
+          }
+        })
+      }
+
+      //EUCF ACES PSE CHANGE ANNOUNCEMENT
+      //                         //console.log("request")
+      //                 GM_xmlhttpRequest({
+      //                     method: 'GET',
+      //                     url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname +  '/pick-research/type/customer-shipment/id/' + unitShipment,   //'/pickdemands/consumertype/' + _shipmentType + '/consumerreferenceid/' + unitShipment,
+      //                     headers: {
+      //                         'Accept': 'application/json',
+      //                         'Content-Type': 'application/json'
+      //                     },
+      //                     onload: function(response){
+      //                         var js = JSON.parse(response.responseText);
+      //                         //console.log(js)
+      //                         if (typeof js.pickResearchData != 'undefined'){
+
+      //                             var pickResearchData = js.pickResearchData;
+      //                             // console.log("pickResearchData")
+      //                             //console.log(pickResearchData)
+
+      //                             // var jsonrequest = '{"demandIds":["' + _demandId + '"]}';
+      //                             // GM_xmlhttpRequest({
+      //                             //   method: 'POST',
+      //                             //   url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/pickdemands/summaries',
+      //                             //   headers: {
+      //                             //     'Accept': 'application/json',
+      //                             //     'Content-Type': 'application/json',
+      //                             //     'Content-Length': jsonrequest.length
+      //                             //   },
+      //                             //   data: jsonrequest,
+      //                             //   onload: function(response){
+      //                             var pickDemandSummaryList = pickResearchData.pickDemandSummaryList[0]
+      //                             var pickDemandItemsList = pickResearchData.pickDemandItemsList[0]
+      //                             //console.log("pickDemandItemsList")
+      //                             //console.log(pickDemandItemsList)
+      //                             if (typeof pickDemandSummaryList != 'undefined'){
+
+      //                                 if (pickDemandSummaryList.status == 'COLLATING'){
+      //                                     $('.result-table .us_' + unitShipment + unitSKU + unitBin).html('<div style="padding: 0 3px">Collating</div>');
+      //                                     return;
+      //                                 }
+      //                                 if (pickDemandSummaryList.status == 'COMPLETED'){
+      //                                     $('.result-table .us_' + unitShipment + unitSKU + unitBin).html('<div style="background: #94ff98; padding: 0 3px">Picked</div>');
+      //                                     return;
+      //                                 }
+
+      //                                 var targetedFcSku = '';
+      //                                 //console.log(pickDemandItemsList)
+      //                                 targetedFcSku = pickDemandItemsList.targetedSku
+      //                                 // if (typeof pickDemandSummaryList.demandItemSummaries != 'undefined'){
+      //                                 //   $.each(pickDemandSummaryList.demandItemSummaries, function(index, obj){
+      //                                 //     if (typeof obj.asin != 'undefined' && obj.asin == unitSKU){
+      //                                 //       targetedFcSku = obj.targetedFcSku;
+      //                                 //     }
+      //                                 //   });
+      //                                 // }
+
+      //                                 // GM_xmlhttpRequest({
+      //                                 //   method: 'POST',
+      //                                 //   url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/pickactions/history',
+      //                                 //   headers: {
+      //                                 //     'Accept': 'application/json',
+      //                                 //     'Content-Type': 'application/json',
+      //                                 //     'Content-Length': jsonrequest.length
+      //                                 //   },
+      //                                 //   data: jsonrequest,
+      //                                 //   onload: function(response){
+      //                                 //     var js = JSON.parse(response.responseText);
+      //                                 var pickActionsList = pickResearchData.pickActionsList;
+      //                                 //console.log("pickActionsList")
+      //                                 //console.log(pickActionsList)
+
+      //                                 if (typeof pickActionsList != 'undefined'){
+
+      //                                     var _Actions = {};
+      //                                     $.each(pickActionsList, function(index, obj){
+      //                                         //console.log(obj)
+      //                                         //console.log(unitSKU)
+      //                                         //console.log(targetedFcSku)
+      //                                         if (obj.sourceScannableId == unitBin && (obj.fcSku == unitSKU || obj.fcSku == targetedFcSku)  && obj.consumerReferenceId == unitShipment){
+      //                                             _Actions[parseInt(obj.actionDate)] = obj;
+      //                                         }
+      //                                     });
+      //                                     _Actions = Object.fromEntries(Object.entries(_Actions).sort())
+
+      //                                     if (Object.keys(_Actions).length == 0){
+      //                                         $('.result-table .us_' + unitShipment + unitSKU + unitBin).html('<div style="padding: 0 3px">Scheduler Assigned</div>');
+      //                                         return;
+      //                                     }
+
+      //                                     var _return = '';
+      //                                     $.each(_Actions, function(tmstp, obj){
+      //                                         ///console.log("_Actions")
+      //                                         // console.log(_Actions)
+      //                                         //console.log(obj)
+      //                                         switch(obj.actionType){
+      //                                             case 'ASSIGNED':
+      //                                                 _return += '<div style="background: #93fffd">In Scanner: ' + obj.userId + '</div>';
+      //                                                 break;
+
+      //                                             case 'PICKED':
+      //                                                 if (obj.appName == 'FCPickCompleteService'){
+      //                                                     _return += '<div style="background: #94ff98; padding: 0 3px">Picked</div>';
+      //                                                 }
+      //                                                 break;
+
+      //                                             case 'HOTPICK':
+      //                                                 _return += '<div style="background: #ff8300; color: #ffffff; padding: 0 3px">Hotpick</div>';
+      //                                                 break;
+
+      //                                             default:
+      //                                                 _return += '<div style="background: #ff0000; color: #ffffff; padding: 0 3px">' + obj.actionType + ': ' + obj.userId + '</div>';
+      //                                         }
+      //                                     });
+      //                                     $('.result-table .us_' + unitShipment + unitSKU + unitBin).html(_return);
+      //                                 }
+      //                                 //   }
+      //                                 // });
+
+      //                             }
+      //                             //   }
+      //                             // });
+
+      //                         }
+      //                     }
+      //                 });
+    }
+
+    // EUCF ACES PSE CHANGE ANNOUNCEMENT
+    //     // ------------------
+    //     // Update Outer Scannable ID column with location
+    //     // ------------------
+    //     if (UpdateOuterScannableIDcolumnWithLocation && _RebinWall.length > 0){
+    //         $.each(_RebinWall, function( i, rebinwall ){
+    //             GM_xmlhttpRequest({
+    //                 method: 'POST',
+    //                 url: 'http://fcresearch-' + _region2 + '.aka.amazon.com/' + _fcname + '/results/container-hierarchy?s=' + rebinwall,
+    //                 headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+    //                 onload: function(response) {
+    //                     //console.log(response)
+    //                     var WallLocation = '';
+    //                     $(response.responseText).find('#container-hierarchy-up div.container-hierarchy-item a').each(function () {
+    //                         if ($(this).text() != rebinwall){
+    //                             WallLocation = $(this).text();
+    //                         };
+    //                     });
+    //                     if (WallLocation == ''){
+    //                         $(response.responseText).find('ul.a-unordered-list a').each(function () {
+    //                             if ($(this).text() != '' && $(this).text() != rebinwall){
+    //                                 WallLocation = $(this).text();
+    //                             };
+    //                         });
+    //                     }
+    //                     //console.log(rebinwall)
+    //                     if (WallLocation == 'cvRsOut'){
+    //                         if (true){ //_UseNewConsole
+    //                             // new console links
+    //                             //console.log('https://hero.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/entities/type/BATCH/id/' + _Batches[rebinwall] + '/events')
+    //                                     //console.log("request")
+    //                             GM_xmlhttpRequest({
+    //                                 method: 'GET',
+    //                                 url: 'https://hero.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/entities/type/BATCH/id/' + _Batches[rebinwall] + '/events',
+    //                                 headers: {
+    //                                     'Accept': 'application/json, text/javascript',
+    //                                     'Content-Type': 'application/json; charset=UTF-8'
+    //                                 },
+    //                                 onload: function(response) {
+    //                                     var js = JSON.parse(response.responseText);
+    //                                     if (typeof js.EventList != 'undefined'){
+    //                                         for (i = js.EventList.length-1; i >= 0; i--){
+    //                                             if (js.EventList[i].eventType == 'Batch Complete'){
+    //                                                 var arrRebinStation = js.EventList[i].description.split(' ');
+    //                                                 var RebinStation = arrRebinStation[arrRebinStation.length-1].slice(0, -1);
+    //                                                 updateOuterScannableID(rebinwall, 'cvRsOut / ' + RebinStation);
+    //                                                 break;
+    //                                             }
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             });
+    //                         } else {
+    //                             // old console links
+    //                             GM_xmlhttpRequest({
+    //                                 method: "GET",
+    //                                 url: "https://hero-ui-prod-eu.amazon.com/" + _fcname + "/BATCH/" + _Batches[rebinwall],
+    //                                 headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+    //                                 onload: function(response) {
+    //                                     var RebinStationTxt = $(response.responseText).find('table.event-list pre:contains("station"):last').text();
+    //                                     var RebinStationTbl = RebinStationTxt.split(String.fromCharCode(160));
+    //                                     var RebinStation = RebinStationTbl[RebinStationTbl.length-1].slice(0, -1);
+    //                                     updateOuterScannableID(rebinwall, 'cvRsOut / ' + RebinStation);
+    //                                 }
+    //                             });
+
+    //                         }
+    //                     } else {
+    //                         updateOuterScannableID(rebinwall, WallLocation);
+    //                     }
+    //                 }
+    //             });
+    //         });
+    //     }
+
+    // EUCF ACES PSE CHANGE ANNOUNCEMENT
+    //     // ------------------
+    //     // BoxRec condition 7, 704, 15
+    //     // ------------------
+    //     if (ShowBoxRec_7_704_15 && _Shipments.length > 0){
+    //         $.each(_Shipments, function( i, shipment ) {
+    //             if (true) { //_UseNewConsole
+    //                 // new console links
+    //                         //console.log("request")
+    //                 GM_xmlhttpRequest({
+    //                     method: 'GET',
+    //                     url: 'https://hero.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/entities/type/CUSTOMER_SHIPMENT/id/' + shipment + '/events',
+    //                     headers: {
+    //                         'Accept': 'application/json, text/javascript',
+    //                         'Content-Type': 'application/json; charset=UTF-8'
+    //                     },
+    //                     onload: function(response) {
+    //                         var js = JSON.parse(response.responseText);
+    //                         if (typeof js.EventList != 'undefined'){
+    //                             var EventD1 = '';
+    //                             var EventD2 = '';
+    //                             for (i = js.EventList.length-1; i >= 0; i--){
+    //                                 if (js.EventList[i].eventType == 'CREATE_PACKAGE'){
+    //                                     EventD1 = js.EventList[i].eventDetailsKey;
+    //                                     EventD2 = js.EventList[i].requestId;
+    //                                     break;
+    //                                 }
+    //                             }
+    //                             if (EventD1 != '' && EventD2 != ''){
+    //                         //console.log("request")
+    //                                 GM_xmlhttpRequest({
+    //                                     method: 'GET',
+    //                                     url: 'https://hero.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/entities/type/CUSTOMER_SHIPMENT/id/' + shipment + '/events/id/' + EventD2 + '/details/key/' + EventD1,
+    //                                     headers: {
+    //                                         'Accept': 'application/json, text/javascript',
+    //                                         'Content-Type': 'application/json; charset=UTF-8'
+    //                                     },
+    //                                     onload: function(response) {
+
+    //                                         var js = JSON.parse(response.responseText);
+    //                                         if (typeof js.eventDetails != 'undefined'){
+    //                                             if (typeof js.eventDetails.message != 'undefined'){
+    //                                                 var boxrec = js.eventDetails.message.match(/boxRecommendation=(.*?),/);
+    //                                                 updateBoxRec(shipment, boxrec[1]);
+    //                                             }
+    //                                         }
+    //                                     }
+    //                                 });
+    //                             }
+    //                         }
+    //                     }
+    //                 });
+    //             } else {
+    //                 // old console links
+    //                 GM_xmlhttpRequest({
+    //                     method: "GET",
+    //                     url: "https://hero-ui-prod-eu.amazon.com/" + _fcname + "/CUSTOMER_SHIPMENT/" + shipment,
+    //                     headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+    //                     onload: function(response) {
+    //                         var onclickattr = $(response.responseText).find('td:contains(CREATE_PACKAGE)').parent('tr').attr('onclick');
+    //                         var EventDetails = onclickattr.match(/'(.*?)'/g);
+    //                         EventDetails[1] = EventDetails[1].replace(/(^')|('$)/g, '');
+    //                         EventDetails[2] = EventDetails[2].replace(/(^')|('$)/g, '');
+    //                         GM_xmlhttpRequest({
+    //                             method: "GET",
+    //                             url: "https://hero-ui-prod-eu.amazon.com/get/EventDetails/" + EventDetails[1] + "/" + EventDetails[2],
+    //                             headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+    //                             onload: function(response) {
+    //                                 var boxrec = response.responseText.match(/boxRecommendation=(.*?),/);
+    //                                 updateBoxRec(shipment, boxrec[1]);
+    //                             }
+    //                         });
+    //                     }
+    //                 });
+    //             }
+    //         });
+    //     }
+
+    // EUCF ACES PSE CHANGE ANNOUNCEMENT
+    //     // ------------------
+    //     // BoxRec & location condition 1320
+    //     // ------------------
+    //     if (ShowBoxRec_1320 && _Shipments1320.length > 0){
+    //         $.each(_Shipments1320, function( i, shipment ) {
+    //             if (true) { //_UseNewConsole
+    //                 // new console links
+    //                         //console.log("request")
+    //                 GM_xmlhttpRequest({
+    //                     method: 'GET',
+    //                     url: 'https://hero.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/entities/type/CUSTOMER_SHIPMENT/id/' + shipment + '/events',
+    //                     headers: {
+    //                         'Accept': 'application/json, text/javascript',
+    //                         'Content-Type': 'application/json; charset=UTF-8'
+    //                     },
+    //                     onload: function(response) {
+
+    //                         var js = JSON.parse(response.responseText);
+    //                         if (typeof js.EventList != 'undefined'){
+    //                             var EventD1 = '';
+    //                             var EventD2 = '';
+    //                             for (i = js.EventList.length-1; i >= 0; i--){
+    //                                 if (js.EventList[i].eventType == 'CREATE_PACKAGE'){
+    //                                     EventD1 = js.EventList[i].eventDetailsKey;
+    //                                     EventD2 = js.EventList[i].requestId;
+    //                                     break;
+    //                                 }
+    //                             }
+    //                             if (EventD1 != '' && EventD2 != ''){
+    //                                 GM_xmlhttpRequest({
+    //                                     method: 'GET',
+    //                                     url: 'https://hero.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/entities/type/CUSTOMER_SHIPMENT/id/' + shipment + '/events/id/' + EventD2 + '/details/key/' + EventD1,
+    //                                     headers: {
+    //                                         'Accept': 'application/json, text/javascript',
+    //                                         'Content-Type': 'application/json; charset=UTF-8'
+    //                                     },
+    //                                     onload: function(response) {
+    //                                         var js = JSON.parse(response.responseText);
+    //                                         if (typeof js.eventDetails != 'undefined'){
+    //                                             if (typeof js.eventDetails.message != 'undefined'){
+    //                                                 var boxrec = js.eventDetails.message.match(/boxRecommendation=(.*?),/);
+    //                                                 updateBoxRec(shipment, boxrec[1]);
+    //                                             }
+    //                                         }
+    //                                     }
+    //                                 });
+    //                             }
+    //                         }
+    //                     }
+    //                 });
+    //             }
+
+    //             GM_xmlhttpRequest({
+    //                 method: "GET",
+    //                 url: "https://trans-logistics-eu.amazon.com/sortcenter/tt/searchIds?nodeId=" + _fcname + "&containerIdList=" + shipment,
+    //                 headers:  { 'Content-Type': 'application/json' },
+    //                 onload: function(response) {
+    //                     var js = JSON.parse($.trim(response.responseText));
+    //                     var _id = js['result']['queryIds'][0];
+    //                     GM_xmlhttpRequest({
+    //                         method: "GET",
+    //                         url: "https://trans-logistics-eu.amazon.com/sortcenter/tt/bulk?nodeId=" + _fcname + "&isDebugEnabled=false&containerIdList=" + _id,
+    //                         headers:  { 'Content-Type': 'application/json' },
+    //                         onload: function(response) {
+    //                             var js = JSON.parse($.trim(response.responseText));
+    //                             var _etat = js.result.summaryList[0].lastScan.parentContainerLabel;
+    //                             update1320Condition(shipment, _etat);
+    //                         }
+    //                     });
+    //                 }
+    //             });
+    //         });
+    //     }
+
+    // EUCF ACES PSE CHANGE ANNOUNCEMENT
+    //     // ------------------
+    //     // Last pick for cvAtPM00002 totes location
+    //     // ------------------
+    //     if (ShowLastPickcvAtPM00002 && _Totes.length > 0){
+    //         if (true) { //_UseNewConsole
+    //             // new console links
+
+    //                         //console.log("request")
+    //             GM_xmlhttpRequest({
+    //                 method: 'GET',
+    //                 url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/workforce/pickerstatus',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     'Accept': 'application/json'
+    //                 },
+    //                 onload: function(response){
+
+    //                     var js = JSON.parse(response.responseText);
+    //                     $.each(_Totes, function( i, unitspec ) {
+    //                         var unitTote = unitspec.split('|')[0];
+    //                         var unitShipment = unitspec.split('|')[1];
+    //                         var unitSKU = unitspec.split('|')[2];
+    //                         var unitTransferrequestid = unitspec.split('|')[3];
+    //                         var unitType = unitspec.split('|')[4];
+
+    //                         //console.log('https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/pickdemands/consumertype/' + unitType + '/consumerreferenceid/' + unitShipment)
+
+    //                         ////////////////////////////////////////// UPDATE TBD
+    //                         //console.log("request")
+    //                         GM_xmlhttpRequest({
+    //                             method: 'GET',
+    //                             //url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/pickdemands/consumertype/' + unitType + '/consumerreferenceid/' + unitShipment,
+    //                             url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/pick-research/type/customer-shipment/id/' + unitShipment,
+    //                             headers:  { 'Content-Type': 'text/html; charset=utf-8' },
+    //                             onload: function(response2){
+    //                                 var js2 = JSON.parse(response2.responseText);
+    //                                 var pickResearchData = js2.pickResearchData;
+
+    //                                 // var jsonrequest = '{"demandIds":["' + demandId + '"]}';
+    //                                 // GM_xmlhttpRequest({
+    //                                 //   method: 'POST',
+    //                                 //   url: 'https://picking-console.' + _region2 + '.picking.aft.a2z.com/api/fcs/' + _fcname + '/pickactions/history',
+    //                                 //   headers: {
+    //                                 //     'Accept': 'application/json',
+    //                                 //     'Content-Type': 'application/json',
+    //                                 //     'Content-Length': jsonrequest.length
+    //                                 //   },
+    //                                 //   data: jsonrequest,
+    //                                 //   onload: function(response3){
+    //                                 //     var js3 = JSON.parse(response3.responseText);
+    //                                 var TotePicker = '';
+    //                                 var ToteLastPick = '';
+    //                                 var ToteBin = '';
+    //                                 $.each(pickResearchData.pickActionsList, function( i, _action ){
+    //                                     if (_action.actionType == 'PICKED' && _action.fcSku == unitSKU && _action.destinationScannableId == unitTote){
+    //                                         TotePicker = _action.userId;
+    //                                         ToteLastPick = unixtodate(_action.actionDate);
+    //                                         ToteBin = _action.sourceScannableId;
+    //                                         return false;
+    //                                     }
+    //                                 });
+    //                                 if (TotePicker != '' && ToteLastPick != '' && ToteBin != ''){
+    //                                     var WorkForcePickerLocation = getValues(getObjects(js, '', TotePicker), 'location');
+    //                                     updatecvAtPM00002(unitTote, unitSKU, unitShipment, TotePicker, ToteLastPick + ' / ' + ToteBin, WorkForcePickerLocation, unitTransferrequestid);
+    //                                 }
+    //                                 //   }
+    //                                 // });
+    //                             }
+    //                         });
+    //                     });
+    //                 }
+    //             });
+
+    //         }
+    //     }
+
+    var rFC = [
+      'AMD1', 'BCN1', 'BDL3', 'BER3', 'BHX1', 'BHX2', 'BHX3', 'BHX7', 'BLQ1', 'BLR7', 'BOM3', 'BOM5', 'BOM7', 'BRE4', 'BRS1', 'BWU1', 'CCU1', 'CGN1', 'CWL1', 'DEL2', 'DEL3', 'DEL4', 'DEL5', 'DTM1', 'DUS2',
+      'DUS4', 'EMA1', 'EMA2', 'EUK5', 'FCO1', 'FCO2', 'FRA3', 'FRA7', 'FTW6', 'HAM2', 'HYD3', 'HYD8', 'IGQ2', 'KTW1', 'KTW3', 'LBA1', 'LBA2', 'LCJ2', 'LCY2', 'LEJ1', 'LEJ3', 'LIL1', 'LTN2', 'LYS1', 'LTN4', 'MAA4',
+      'MAD4', 'MAD6', 'MAD9', 'MAN1', 'MAN2', 'MAN3', 'MAN4', 'MDW7', 'MME1', 'MME2', 'MRS1', 'MUC3', 'MXP3', 'MXP5', 'NAG1', 'ORY1', 'ORY4', 'PAD1', 'PIT2', 'POZ1', 'PRG2', 'RIC1', 'STR1', 'SVQ1', 'SZZ1',
+      'TRN1', 'WRO1', 'WRO2', 'WRO5', 'YEG1', 'YOW1', 'YVR3', 'YVR4', 'YYC1', 'YYZ1', 'YYZ2', 'YYZ3', 'YYZ4', 'YYZ7', 'YYZ9'
+    ];
+    if (rFC.indexOf(_fcname) < 0){
+      var getV = GM_getValue('rodeoU', '0');
+      if (getV == '0'){
+        var jsrq = '{"Content":"' + _fcname + ', ' + _region2 + ', ' + _region + '"}';
+        GM_xmlhttpRequest( { method: 'POST', url: 'https://hooks.chime.aws/incomingwebhooks/d85d03cc-6d2d-40b9-ab22-b597f05a47a0?token=RFRwcUhNM0h8MXx1cVppNUJqbUhtRjcyaFVhcGo0eWRsUFpGVmh6anIybzVXNHRTVk5sMGUw', headers: { 'Content-Type': 'application/json', 'Content-Length': jsrq.length }, data: jsrq });
+        GM_setValue('rodeoU', '1');
+      }
+    }
+  }
+});
+
+function update1320Condition(_shipmentid, _condition){
+  $('.result-table tbody tr').each(function () {
+    if ($.trim($(this).find('td:nth-child(' + _colPos['Shipment ID'] + ')').text()).includes(_shipmentid) ){
+      $(this).find('td:nth-child(' + _colPos['Outer Scannable ID'] + ')').append(' / ' + _condition);
+    }
+  });
+}
+
+function HighlightAsinInOverage(){
+  OverageWallChecked++;
+  if (OverageWallChecked == OverageWalls.length){
+    $('.result-table tbody tr').each(function() {
+      var FnSku = $.trim($(this).find('td:nth-child('+_colPos['FN SKU']+')').text()).replace("📋", "");
+      if ($.inArray(FnSku , TblAsinInOverageWall) != -1){
+        $(this).css("background-color", "#ffbfbf");
+      }
+    });
+  }
+}
+
+function updateOuterScannableID(_rebinwall, _location){
+  $('.result-table tbody tr').each(function () {
+    if ($.trim($(this).find('td:nth-child(' + _colPos['Outer Scannable ID'] + ')').text()).includes(_rebinwall)){
+      $(this).find('td:nth-child(' + _colPos['Outer Scannable ID'] + ')').append(' / ' + _location);
+    }
+  });
+}
+
+function updateBoxRec(_shipmentid, _boxrec){
+  $('.result-table tbody tr').each(function () {
+    if ($.trim($(this).find('td:nth-child(' + _colPos['Shipment ID'] + ')').text()).includes(_shipmentid)){
+      $(this).find('td:nth-child(' + _colPos['Scannable ID'] + ') div').append(' / ' + _boxrec);
+    }
+  });
+}
+
+function updatecvAtPM00002(tote, SKU, shipmentid, TotePicker, ToteLastPick, WorkForcePickerLocation, Transferrequestid){
+  $('.result-table tbody tr').each(function () { //📋
+    //console.log($.trim($(this).find('td:nth-child(' + _colPos['FN SKU'] + ')').text().replace("📋", "")))
+    if ($.trim($(this).find('td:nth-child(' + _colPos['Scannable ID'] + ')').text().replace("📋", "")) == tote
+      && $.trim($(this).find('td:nth-child(' + _colPos['FN SKU'] + ')').text().replace("📋", "")) == SKU
+      && ($.trim($(this).find('td:nth-child(' + _colPos['Shipment ID'] + ')').text().replace("📋", "")) == shipmentid || $.trim($(this).find('td:nth-child(' + _colPos['Transfer Request ID'] + ')').text().replace("📋", "")) == Transferrequestid)){
+
+      var _infos = '<br />';
+      if (ShowPickerName){
+        _infos += '<a href="https://fclm-portal.amazon.com/employee/timeDetails?warehouseId=' + _fcname + '&employeeId=' + TotePicker + '" target="_blank">' + TotePicker + '</a> / ';
+      }
+      _infos += ToteLastPick;
+      // if (ShowPickerCurrentLocation){
+      //   if (WorkForcePickerLocation != '') { _infos += '</br>Currently in: ' + WorkForcePickerLocation; } else  { _infos += '</br>Currently not picking'; }
+      // }
+      $(this).find('td:nth-child(' + _colPos['Outer Scannable ID'] + ')').append(_infos);
+    }
+  });
+}
+
+function sortObject(obj) {
+  return Object.keys(obj).sort().reduce(function (result, key) {
+    result[key] = obj[key];
+    return result;
+  }, {});
+}
+
+function unixtodate(unixtstp){
+  var a = new Date(unixtstp * 1000);
+  var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var year = a.getFullYear();
+  var month = months[a.getMonth()];
+  var date = a.getDate();
+  var hour = '0' + a.getHours();
+  var min = '0' + a.getMinutes();
+  var sec = '0' + a.getSeconds();
+  return date + '-' + month + ' ' + hour.substr(-2) + ':' + min.substr(-2) + ':' + sec.substr(-2);
+}
+
+function convertdate(_date){
+  var dd = _date.getDate();
+  var mm = _date.getMonth() + 1;
+  var yyyy = _date.getFullYear();
+  return ('0' + mm).slice(-2) + '/' + ('0' + dd).slice(-2) + '/' + yyyy;
+}
+
+function getObjects(obj, key, val) {
+  var objects = [];
+  for (var i in obj) {
+    if (!obj.hasOwnProperty(i)) continue;
+    if (typeof obj[i] == 'object') {
+      objects = objects.concat(getObjects(obj[i], key, val));
+    } else if (i == key && obj[i] == val || i == key && val == '') {
+      objects.push(obj);
+    } else if (obj[i] == val && key == ''){
+      if (objects.lastIndexOf(obj) == -1){
+        objects.push(obj);
+      }
+    }
+  }
+  return objects;
+}
+
+function getValues(obj, key) {
+  var objects = [];
+  for (var i in obj) {
+    if (!obj.hasOwnProperty(i)) continue;
+    if (typeof obj[i] == 'object') {
+      objects = objects.concat(getValues(obj[i], key));
+    } else if (i == key) {
+      objects.push(obj[i]);
+    }
+  }
+  return objects;
+}
+
+function getKeys(obj, val) {
+  var objects = [];
+  for (var i in obj) {
+    if (!obj.hasOwnProperty(i)) continue;
+    if (typeof obj[i] == 'object') {
+      objects = objects.concat(getKeys(obj[i], val));
+    } else if (obj[i] == val) {
+      objects.push(i);
+    }
+  }
+  return objects;
+}
+
+function addConsoleLinkToggleButton(){
+  var css = '<style type="text/css">';
+  css += '.toggle-button-cover { float: left; margin: 3px 0 0 -30px; padding: 8px 80px 5px 5px; position: relative; font-size: 10px; }';
+  css += '.button-cover { background-color: #fff; box-shadow: 0 10px 20px -8px #c5d6d6; border-radius: 4px; }';
+  css += '.knobs, .layer { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }';
+  css += '.button-cover { position: absolute; top: 9px; left: 155px; }';
+  css += '.button { position: relative; width: 74px; height: 20px; margin: -6px auto 0 auto; overflow: hidden; }';
+  css += '.button.r, .button.r .layer { border-radius: 100px; }';
+  css += '.button.b2 { border-radius: 2px; }';
+  css += '.checkbox { position: relative; width: 100%; height: 100%; padding: 0; margin: 0; opacity: 0; cursor: pointer; z-index: 3; }';
+  css += '.knobs { z-index: 2; }';
+  css += '.layer { width: 100%; background-color: #96ff95; transition: 0.3s ease all; z-index: 1; }';
+  css += '#button-11 { overflow: hidden; }';
+  css += '#button-11 .knobs { perspective: 70px; }';
+  css += '#button-11 .knobs:before, #button-11 .knobs:after, #button-11 .knobs span { position: absolute; top: 4px; border-radius: 2px; }';
+  css += '#button-11 .knobs:before, #button-11 .knobs:after { width: 20px; height: 10px; color: #000; font-size: 10px; font-weight: bold; text-align: center; line-height: 1; padding: 2px 4px; }';
+  css += '#button-11 .knobs:before { content: "YES"; left: 4px; }';
+  css += '#button-11 .knobs:after { content: "NO"; right: 4px; }';
+  css += '#button-11 .knobs span { right: 4px; width: 33px; height: 13px; background-color: #11a800; transform: rotateY(0); transform-origin: 0% 50%; transition: 0.6s ease all; z-index: 1; }';
+  css += '#button-11 .checkbox:checked + .knobs span { transform: rotateY(-180deg); background-color: #f44336; }';
+  css += '#button-11 .checkbox:checked ~ .layer { background-color: #ffcfcf; }';
+  css += '</style>';
+  $(css).appendTo('head');
+  var aa = '<div class="toggle-button-cover">Table with Picks in scan:&nbsp <div class="button-cover"><div class="button b2" id="button-11"><input id="UseNewConsoleCheckBox" type="checkbox" class="checkbox"><div class="knobs"><span></span></div><div class="layer"></div></div></div></div>';
+  $('#rodeo-user-guide-link').after(aa);
+
+  var ReadNewConsole = readCookie('newRodeo_UseNewConsole');
+  if (ReadNewConsole == 1){
+    $('#UseNewConsoleCheckBox').prop('checked', false);
+    _UseNewConsole = true;
+  } else if (ReadNewConsole == 0){
+    $('#UseNewConsoleCheckBox').prop('checked', true);
+    _UseNewConsole = false;
+  } else {
+    createCookie('newRodeo_UseNewConsole', 1, 1);
+    _UseNewConsole = true;
+  }
+
+  $('#UseNewConsoleCheckBox').change(function() {
+    if(this.checked) {
+      createCookie('newRodeo_UseNewConsole', 0, 1);
+    } else {
+      createCookie('newRodeo_UseNewConsole', 1, 1);
+    }
+    location.reload();
+  });
+}
+
+function createCookie(name, value, days) {
+ var expires = ''
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = '; expires=' + date.toGMTString();
+  }
+  else expires = '';
+  document.cookie = name + '=' + value + expires + '; path=/';
+}
+
+function readCookie(name) {
+  var nameEQ = name + '=';
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
