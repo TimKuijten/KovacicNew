@@ -175,6 +175,11 @@
     .grid{display:grid;gap:22px}
     .g-3{grid-template-columns:repeat(3,1fr)}
     .g-4{grid-template-columns:repeat(4,1fr)}
+    .pagination-controls{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:20px}
+    .pagination-controls button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 18px;border-radius:var(--radius);font-weight:600;cursor:pointer;transition:background .2s ease,color .2s ease,box-shadow .2s ease}
+    .pagination-controls button:hover:not([disabled]){background:var(--accent);color:#fff;box-shadow:0 12px 24px rgba(10,33,46,.18)}
+    .pagination-controls button[disabled]{opacity:.6;cursor:not-allowed;box-shadow:none}
+    .pagination-controls span{font-weight:600;color:var(--muted)}
     .contact-grid{grid-template-columns:1.1fr .9fr;gap:24px}
     .card{background:#fafafa;border:1px solid var(--line);border-radius:var(--radius);padding:20px}
     .card h3{margin:8px 0 6px}
@@ -797,6 +802,17 @@
 
 </section>
 
+  <section id="closed-processes" class="container">
+    <h2 class="section-title"><span class="values-title">Closed processes</span></h2>
+    <p class="lead">A look at recent searches we have successfully completed.</p>
+    <div id="closed-posts" class="grid g-3"></div>
+    <div id="closed-pagination" class="pagination-controls" hidden>
+      <button type="button" data-action="prev">Previous</button>
+      <span data-page-info></span>
+      <button type="button" data-action="next">Next</button>
+    </div>
+  </section>
+
 
   <!-- CONTACT / CTA -->
   <section id="contact" class="container">
@@ -1059,6 +1075,112 @@
       });
 
       sync();
+    })();
+
+    /* Load closed processes */
+    (async function(){
+      const container = document.getElementById('closed-posts');
+      const pagination = document.getElementById('closed-pagination');
+      if(!container || !pagination) return;
+
+      const prevBtn = pagination.querySelector('[data-action="prev"]');
+      const nextBtn = pagination.querySelector('[data-action="next"]');
+      const pageInfo = pagination.querySelector('[data-page-info]');
+      const pageSize = 3;
+      const siteBase = 'https://kovacictalent.com';
+      const apiBase = `${siteBase}/wp-json/wp/v2`;
+      const closedCategorySlug = 'closed';
+      let posts = [];
+      let currentPage = 1;
+
+      const sanitize = value => (value || '').replace(/<[^>]+>/g,'').trim();
+
+      const render = () => {
+        container.innerHTML = '';
+        if(!posts.length){
+          container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">No closed processes to display right now.</p>';
+          pagination.hidden = true;
+          return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+        if(currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * pageSize;
+        const slice = posts.slice(start, start + pageSize);
+        slice.forEach(p => {
+          const article = document.createElement('article');
+          article.className = 'card';
+          const excerptRaw = p.excerpt && p.excerpt.rendered ? p.excerpt.rendered : '';
+          const excerpt = sanitize(excerptRaw).slice(0, 140);
+          article.innerHTML = `
+            <h3>${p.title.rendered}</h3>
+            <p>${excerpt}</p>
+            <a href="${p.link}" style="color:var(--accent);font-weight:600;">Read more..</a>
+          `;
+          container.appendChild(article);
+        });
+
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+        pagination.hidden = totalPages <= 1;
+      };
+
+      prevBtn.addEventListener('click', () => {
+        if(currentPage === 1) return;
+        currentPage -= 1;
+        render();
+      });
+
+      nextBtn.addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+        if(currentPage >= totalPages) return;
+        currentPage += 1;
+        render();
+      });
+
+      const fetchJson = async url => {
+        const response = await fetch(url);
+        if(!response.ok) throw new Error(response.statusText || `Status ${response.status}`);
+        return response.json();
+      };
+
+      const resolveClosedCategoryId = async () => {
+        try{
+          const categories = await fetchJson(`${apiBase}/categories?slug=${closedCategorySlug}`);
+          const category = Array.isArray(categories) ? categories.find(cat => cat && cat.slug === closedCategorySlug) : null;
+          return category ? category.id : null;
+        }catch(err){
+          console.warn('Unable to resolve closed category id, falling back to slug filtering', err);
+          return null;
+        }
+      };
+
+      container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Loading closed processes…</p>';
+
+      try{
+        const closedCategoryId = await resolveClosedCategoryId();
+        const query = closedCategoryId
+          ? `${apiBase}/posts?per_page=100&_embed&categories=${closedCategoryId}`
+          : `${apiBase}/posts?per_page=100&_embed`;
+        const data = await fetchJson(query);
+
+        posts = Array.isArray(data) ? data.filter(post => {
+          if(!post || !post.title) return false;
+          if(closedCategoryId){
+            return Array.isArray(post.categories) && post.categories.includes(closedCategoryId);
+          }
+          const termGroups = (post._embedded && post._embedded['wp:term']) || [];
+          return termGroups.some(group => Array.isArray(group) && group.some(term => term && term.taxonomy === 'category' && term.slug === closedCategorySlug));
+        }) : [];
+
+        render();
+      }catch(err){
+        container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Unable to load closed processes right now.</p>';
+        pagination.hidden = true;
+        console.error('Failed to load closed processes', err);
+      }
     })();
 
     /* Load latest blog posts */
