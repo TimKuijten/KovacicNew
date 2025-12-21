@@ -1216,7 +1216,13 @@
           return;
         }
         posts.forEach(p=>{
-          const img = p._embedded && p._embedded['wp:featuredmedia'] ? p._embedded['wp:featuredmedia'][0].source_url : '';
+          const embeddedMedia = p._embedded && p._embedded['wp:featuredmedia'] ? p._embedded['wp:featuredmedia'][0] : null;
+          const mediaSizes = embeddedMedia && embeddedMedia.media_details ? embeddedMedia.media_details.sizes : null;
+          const img =
+            (mediaSizes && mediaSizes.medium && mediaSizes.medium.source_url) ||
+            (embeddedMedia && embeddedMedia.source_url) ||
+            (p.better_featured_image && p.better_featured_image.source_url) ||
+            '';
           const article = document.createElement('article');
           article.className = 'card';
           const excerpt = p.excerpt.rendered.replace(/<[^>]+>/g,'').slice(0,140);
