@@ -1230,25 +1230,51 @@
         });
       };
 
+      const fetchAllPosts = async () => {
+        const perPage = 100;
+        let page = 1;
+        let totalPages = 1;
+        let allPosts = [];
+
+        while(page <= totalPages){
+          const res = await fetch(`https://kovacictalent.com/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&_embed`);
+          if(!res.ok) throw new Error(res.statusText || `Status ${res.status}`);
+
+          const batch = await res.json();
+          const headerTotalPages = res.headers.get('X-WP-TotalPages');
+          totalPages = headerTotalPages ? parseInt(headerTotalPages, 10) || 1 : 1;
+          allPosts = allPosts.concat(batch);
+          page += 1;
+        }
+
+        return allPosts;
+      };
+
+      const applyFilter = (posts, query) => {
+        const normalizedQuery = (query || '').trim().toLowerCase();
+        if(!normalizedQuery){
+          renderPosts(posts.slice(0, 6));
+          return;
+        }
+
+        const filtered = posts.filter(p =>
+          (p.title && p.title.rendered && p.title.rendered.toLowerCase().includes(normalizedQuery)) ||
+          (p.excerpt && p.excerpt.rendered && p.excerpt.rendered.toLowerCase().includes(normalizedQuery))
+        );
+
+        renderPosts(filtered);
+      };
+
       try{
-        const res = await fetch('https://kovacictalent.com/wp-json/wp/v2/posts?per_page=6&_embed');
-        const posts = await res.json();
-        let visiblePosts = posts;
+        const posts = await fetchAllPosts();
 
         if(searchInput){
           searchInput.addEventListener('input', e => {
-            const query = e.target.value.trim().toLowerCase();
-            visiblePosts = !query
-              ? posts
-              : posts.filter(p =>
-                  (p.title && p.title.rendered && p.title.rendered.toLowerCase().includes(query)) ||
-                  (p.excerpt && p.excerpt.rendered && p.excerpt.rendered.toLowerCase().includes(query))
-                );
-            renderPosts(visiblePosts);
+            applyFilter(posts, e.target.value);
           });
         }
 
-        renderPosts(visiblePosts);
+        applyFilter(posts, searchInput ? searchInput.value : '');
       }catch(err){
         console.error('Failed to load posts', err);
       }
