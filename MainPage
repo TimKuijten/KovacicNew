@@ -931,6 +931,94 @@
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
+    const SITE_BASE = 'https://kovacictalent.com';
+    const mediaCache = new Map();
+
+    const toAbsoluteUrl = url => {
+      if(!url) return '';
+      if(url.startsWith('http')) return url;
+      return `${SITE_BASE}${url}`;
+    };
+
+    const resolveFeaturedImage = post => {
+      if(!post) return '';
+
+      const embeddedMedia = (() => {
+        if(!post._embedded || !post._embedded['wp:featuredmedia']) return null;
+        const embedded = post._embedded['wp:featuredmedia'];
+        if(Array.isArray(embedded)){
+          return embedded.length ? embedded[0] : null;
+        }
+        return embedded;
+      })();
+
+      const sizes = embeddedMedia && embeddedMedia.media_details && embeddedMedia.media_details.sizes
+        ? embeddedMedia.media_details.sizes
+        : null;
+
+      const sizedUrl = sizes && (
+        (sizes.medium_large && sizes.medium_large.source_url) ||
+        (sizes.medium && sizes.medium.source_url) ||
+        (sizes.large && sizes.large.source_url) ||
+        (sizes.full && sizes.full.source_url) ||
+        (sizes.thumbnail && sizes.thumbnail.source_url)
+      );
+
+      const directEmbedded = embeddedMedia && embeddedMedia.source_url ? embeddedMedia.source_url : '';
+      const betterFeatured = post.better_featured_image && post.better_featured_image.source_url
+        ? post.better_featured_image.source_url
+        : '';
+      const jetpack = post.jetpack_featured_media_url || '';
+      const ogImage = post.yoast_head_json && Array.isArray(post.yoast_head_json.og_image) && post.yoast_head_json.og_image[0]
+        ? post.yoast_head_json.og_image[0].url
+        : '';
+      const twitterImage = post.yoast_head_json && post.yoast_head_json.twitter_image
+        ? post.yoast_head_json.twitter_image
+        : '';
+
+      const contentImage = (() => {
+        const content = post.content && post.content.rendered ? post.content.rendered : '';
+        const match = content.match(/<img[^>]+src=["']([^"']+)/i);
+        return match ? match[1] : '';
+      })();
+
+      return toAbsoluteUrl(sizedUrl || directEmbedded || betterFeatured || jetpack || ogImage || twitterImage || contentImage);
+    };
+
+    const fetchMediaById = async mediaId => {
+      if(!mediaId) return '';
+      if(mediaCache.has(mediaId)) return mediaCache.get(mediaId);
+      try{
+        const response = await fetch(`${SITE_BASE}/wp-json/wp/v2/media/${mediaId}`);
+        if(!response.ok) throw new Error(`Media ${mediaId} error ${response.status}`);
+        const media = await response.json();
+        const sizes = media && media.media_details && media.media_details.sizes ? media.media_details.sizes : null;
+        const sizedUrl = sizes && (
+          (sizes.medium_large && sizes.medium_large.source_url) ||
+          (sizes.medium && sizes.medium.source_url) ||
+          (sizes.large && sizes.large.source_url) ||
+          (sizes.full && sizes.full.source_url) ||
+          (sizes.thumbnail && sizes.thumbnail.source_url)
+        );
+
+        const direct = media && media.source_url ? media.source_url : '';
+        const resolved = toAbsoluteUrl(sizedUrl || direct);
+        mediaCache.set(mediaId, resolved);
+        return resolved;
+      }catch(err){
+        console.error('Failed to fetch media', mediaId, err);
+        mediaCache.set(mediaId, '');
+        return '';
+      }
+    };
+
+    const hydrateFeaturedImage = async post => {
+      const resolved = resolveFeaturedImage(post);
+      if(resolved) return resolved;
+      const fetched = await fetchMediaById(post && post.featured_media);
+      return fetched || '';
+    };
+
     /* Mobile navigation */
     (function(){
       const nav = document.querySelector('.nav');
@@ -1100,8 +1188,7 @@
   const nextBtn = pagination.querySelector('[data-action="next"]');
   const pageInfo = pagination.querySelector('[data-page-info]');
   const pageSize = 3;
-  const siteBase = 'https://kovacictalent.com';
-  const apiBase = `${siteBase}/wp-json/wp/v2`;
+  const apiBase = `${SITE_BASE}/wp-json/wp/v2`;
   const closedCategorySlug = 'closed';
   let posts = [];
   let currentPage = 1;
@@ -1126,7 +1213,9 @@
       article.className = 'card';
       const excerptRaw = p.excerpt && p.excerpt.rendered ? p.excerpt.rendered : '';
       const excerpt = sanitize(excerptRaw).slice(0, 140);
+      const img = p.__featuredImage || resolveFeaturedImage(p);
       article.innerHTML = `
+        ${img ? `<img src="${img}" alt="${p.title.rendered}" style="width:100%;height:160px;object-fit:cover;border-radius:var(--radius);">` : ''}
         <h3>${p.title.rendered}</h3>
         <p>${excerpt}</p>
         <a href="${p.link}" style="color:var(--accent);font-weight:600;">Read more..</a>
@@ -1195,6 +1284,15 @@
       );
     }) : [];
 
+    const hydrated = [];
+    for(const post of posts){
+      const hydratedImage = await hydrateFeaturedImage(post);
+      post.__featuredImage = hydratedImage;
+      hydrated.push(post);
+    }
+
+    posts = hydrated;
+
     render();
   }catch(err){
     container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Unable to load closed processes right now.</p>';
@@ -1208,78 +1306,6 @@
       const container = document.getElementById('blog-posts');
       const searchInput = document.getElementById('process-search');
       if(!container) return;
-      const siteBase = 'https://kovacictalent.com';
-
-      const toAbsoluteUrl = url => {
-        if(!url) return '';
-        if(url.startsWith('http')) return url;
-        return `${siteBase}${url}`;
-      };
-
-      const resolveFeaturedImage = post => {
-        if(!post) return '';
-
-        const embeddedMedia = (() => {
-          if(!post._embedded || !post._embedded['wp:featuredmedia']) return null;
-          const embedded = post._embedded['wp:featuredmedia'];
-          if(Array.isArray(embedded)){
-            return embedded.length ? embedded[0] : null;
-          }
-          return embedded;
-        })();
-
-        const sizes = embeddedMedia && embeddedMedia.media_details && embeddedMedia.media_details.sizes
-          ? embeddedMedia.media_details.sizes
-          : null;
-
-        const sizedUrl = sizes && (
-          (sizes.medium_large && sizes.medium_large.source_url) ||
-          (sizes.medium && sizes.medium.source_url) ||
-          (sizes.large && sizes.large.source_url) ||
-          (sizes.full && sizes.full.source_url) ||
-          (sizes.thumbnail && sizes.thumbnail.source_url)
-        );
-
-        const directEmbedded = embeddedMedia && embeddedMedia.source_url ? embeddedMedia.source_url : '';
-        const betterFeatured = post.better_featured_image && post.better_featured_image.source_url
-          ? post.better_featured_image.source_url
-          : '';
-        const jetpack = post.jetpack_featured_media_url || '';
-        const ogImage = post.yoast_head_json && Array.isArray(post.yoast_head_json.og_image) && post.yoast_head_json.og_image[0]
-          ? post.yoast_head_json.og_image[0].url
-          : '';
-
-        return toAbsoluteUrl(sizedUrl || directEmbedded || betterFeatured || jetpack || ogImage);
-      };
-
-      const mediaCache = new Map();
-
-      const fetchMediaById = async mediaId => {
-        if(!mediaId) return '';
-        if(mediaCache.has(mediaId)) return mediaCache.get(mediaId);
-        try{
-          const response = await fetch(`${siteBase}/wp-json/wp/v2/media/${mediaId}`);
-          if(!response.ok) throw new Error(`Media ${mediaId} error ${response.status}`);
-          const media = await response.json();
-          const sizes = media && media.media_details && media.media_details.sizes ? media.media_details.sizes : null;
-          const sizedUrl = sizes && (
-            (sizes.medium_large && sizes.medium_large.source_url) ||
-            (sizes.medium && sizes.medium.source_url) ||
-            (sizes.large && sizes.large.source_url) ||
-            (sizes.full && sizes.full.source_url) ||
-            (sizes.thumbnail && sizes.thumbnail.source_url)
-          );
-
-          const direct = media && media.source_url ? media.source_url : '';
-          const resolved = toAbsoluteUrl(sizedUrl || direct);
-          mediaCache.set(mediaId, resolved);
-          return resolved;
-        }catch(err){
-          console.error('Failed to fetch media', mediaId, err);
-          mediaCache.set(mediaId, '');
-          return '';
-        }
-      };
 
       const renderPosts = (posts = []) => {
         container.innerHTML = '';
@@ -1309,7 +1335,7 @@
         let allPosts = [];
 
         while(page <= totalPages){
-          const res = await fetch(`https://kovacictalent.com/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&_embed`);
+          const res = await fetch(`${SITE_BASE}/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&_embed`);
           if(!res.ok) throw new Error(res.statusText || `Status ${res.status}`);
 
           const batch = await res.json();
@@ -1340,15 +1366,7 @@
       const hydrateFeaturedImages = async posts => {
         const hydrated = [];
         for(const post of posts){
-          const resolved = resolveFeaturedImage(post);
-          if(resolved){
-            post.__featuredImage = resolved;
-            hydrated.push(post);
-            continue;
-          }
-
-          const fetched = await fetchMediaById(post.featured_media);
-          post.__featuredImage = fetched || '';
+          post.__featuredImage = await hydrateFeaturedImage(post);
           hydrated.push(post);
         }
         return hydrated;
