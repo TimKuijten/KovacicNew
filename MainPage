@@ -1219,11 +1219,14 @@
       const resolveFeaturedImage = post => {
         if(!post) return '';
 
-        const embeddedMedia = post._embedded && post._embedded['wp:featuredmedia']
-          ? Array.isArray(post._embedded['wp:featuredmedia'])
-            ? post._embedded['wp:featuredmedia'][0]
-            : post._embedded['wp:featuredmedia']
-          : null;
+        const embeddedMedia = (() => {
+          if(!post._embedded || !post._embedded['wp:featuredmedia']) return null;
+          const embedded = post._embedded['wp:featuredmedia'];
+          if(Array.isArray(embedded)){
+            return embedded.length ? embedded[0] : null;
+          }
+          return embedded;
+        })();
 
         const sizes = embeddedMedia && embeddedMedia.media_details && embeddedMedia.media_details.sizes
           ? embeddedMedia.media_details.sizes
@@ -1233,6 +1236,7 @@
           (sizes.medium_large && sizes.medium_large.source_url) ||
           (sizes.medium && sizes.medium.source_url) ||
           (sizes.large && sizes.large.source_url) ||
+          (sizes.full && sizes.full.source_url) ||
           (sizes.thumbnail && sizes.thumbnail.source_url)
         );
 
@@ -1248,6 +1252,35 @@
         return toAbsoluteUrl(sizedUrl || directEmbedded || betterFeatured || jetpack || ogImage);
       };
 
+      const mediaCache = new Map();
+
+      const fetchMediaById = async mediaId => {
+        if(!mediaId) return '';
+        if(mediaCache.has(mediaId)) return mediaCache.get(mediaId);
+        try{
+          const response = await fetch(`${siteBase}/wp-json/wp/v2/media/${mediaId}`);
+          if(!response.ok) throw new Error(`Media ${mediaId} error ${response.status}`);
+          const media = await response.json();
+          const sizes = media && media.media_details && media.media_details.sizes ? media.media_details.sizes : null;
+          const sizedUrl = sizes && (
+            (sizes.medium_large && sizes.medium_large.source_url) ||
+            (sizes.medium && sizes.medium.source_url) ||
+            (sizes.large && sizes.large.source_url) ||
+            (sizes.full && sizes.full.source_url) ||
+            (sizes.thumbnail && sizes.thumbnail.source_url)
+          );
+
+          const direct = media && media.source_url ? media.source_url : '';
+          const resolved = toAbsoluteUrl(sizedUrl || direct);
+          mediaCache.set(mediaId, resolved);
+          return resolved;
+        }catch(err){
+          console.error('Failed to fetch media', mediaId, err);
+          mediaCache.set(mediaId, '');
+          return '';
+        }
+      };
+
       const renderPosts = (posts = []) => {
         container.innerHTML = '';
         if(!posts.length){
@@ -1255,7 +1288,7 @@
           return;
         }
         posts.forEach(p=>{
-          const img = resolveFeaturedImage(p);
+          const img = p.__featuredImage || resolveFeaturedImage(p);
           const article = document.createElement('article');
           article.className = 'card';
           const excerpt = p.excerpt.rendered.replace(/<[^>]+>/g,'').slice(0,140);
@@ -1304,16 +1337,34 @@
         renderPosts(filtered);
       };
 
+      const hydrateFeaturedImages = async posts => {
+        const hydrated = [];
+        for(const post of posts){
+          const resolved = resolveFeaturedImage(post);
+          if(resolved){
+            post.__featuredImage = resolved;
+            hydrated.push(post);
+            continue;
+          }
+
+          const fetched = await fetchMediaById(post.featured_media);
+          post.__featuredImage = fetched || '';
+          hydrated.push(post);
+        }
+        return hydrated;
+      };
+
       try{
         const posts = await fetchAllPosts();
+        const hydratedPosts = await hydrateFeaturedImages(posts);
 
         if(searchInput){
           searchInput.addEventListener('input', e => {
-            applyFilter(posts, e.target.value);
+            applyFilter(hydratedPosts, e.target.value);
           });
         }
 
-        applyFilter(posts, searchInput ? searchInput.value : '');
+        applyFilter(hydratedPosts, searchInput ? searchInput.value : '');
       }catch(err){
         console.error('Failed to load posts', err);
       }
