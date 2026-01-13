@@ -127,9 +127,9 @@ class Kovacic_CV_Feedback {
                         <th scope="row"><label for="<?php echo self::OPT_NOTIFY_EMAIL; ?>">Internal notification emails</label></th>
                         <td>
                             <input type="text" id="<?php echo self::OPT_NOTIFY_EMAIL; ?>" name="<?php echo self::OPT_NOTIFY_EMAIL; ?>" value="<?php echo esc_attr(get_option(self::OPT_NOTIFY_EMAIL)); ?>" class="regular-text" placeholder="talent@yourdomain.com, hr@yourdomain.com" />
-                            <p class="description">Default recipients. If several are listed, separate them with commas. We'll send a notice for each submission when no post-specific list is set.</p>
+                            <p class="description">Default recipients. If several are listed, separate them with commas. We'll always notify these addresses.</p>
                             <h4 style="margin:16px 0 8px;">Per blog post recipients</h4>
-                            <p class="description">Add or remove emails per blog post. Leave blank to disable notifications for that post.</p>
+                            <p class="description">Add extra emails per blog post. These will be added on top of the default recipients.</p>
                             <?php
                             $posts = get_posts([
                                 'post_type' => 'post',
@@ -458,19 +458,22 @@ JS;
 
     /** Obtiene emails válidos para avisos internos */
     private function get_notify_emails($vacancy_id = 0) {
+        $default_raw = get_option(self::OPT_NOTIFY_EMAIL);
+        $default_emails = $this->parse_notify_emails($default_raw);
+
         $vacancy_id = absint($vacancy_id);
         if ($vacancy_id > 0) {
             $notify_by_post = get_option(self::OPT_NOTIFY_EMAILS_BY_POST, []);
             if (is_array($notify_by_post) && array_key_exists($vacancy_id, $notify_by_post)) {
                 $raw = $notify_by_post[$vacancy_id];
-                if (trim((string) $raw) === '') {
-                    return [];
+                $extra_emails = $this->parse_notify_emails($raw);
+                if (!empty($extra_emails)) {
+                    return array_values(array_unique(array_merge($default_emails, $extra_emails)));
                 }
-                return $this->parse_notify_emails($raw);
             }
         }
-        $raw = get_option(self::OPT_NOTIFY_EMAIL);
-        return $this->parse_notify_emails($raw);
+
+        return $default_emails;
     }
 
     private function parse_form_defaults($atts, $register_only = false) {
