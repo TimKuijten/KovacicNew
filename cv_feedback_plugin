@@ -13,6 +13,7 @@ class Kovacic_CV_Feedback {
     const OPT_API_KEY = 'kcvf_es_openai_api_key';
     const OPT_AUTO_FEEDBACK = 'kcvf_es_auto_feedback';
     const OPT_NOTIFY_EMAIL = 'kcvf_es_notify_email';
+    const OPT_NOTIFY_EMAILS_BY_POST = 'kcvf_es_notify_emails_by_post';
     const OPT_GDPR_TEXT = 'kcvf_es_gdpr_text';
     const OPT_THANKYOU_TEXT = 'kcvf_es_thankyou_text';
 
@@ -59,6 +60,9 @@ class Kovacic_CV_Feedback {
         register_setting(self::OPT_GROUP, self::OPT_API_KEY);
         register_setting(self::OPT_GROUP, self::OPT_AUTO_FEEDBACK);
         register_setting(self::OPT_GROUP, self::OPT_NOTIFY_EMAIL);
+        register_setting(self::OPT_GROUP, self::OPT_NOTIFY_EMAILS_BY_POST, [
+            'sanitize_callback' => [$this, 'sanitize_notify_emails_by_post'],
+        ]);
         register_setting(self::OPT_GROUP, self::OPT_GDPR_TEXT);
         register_setting(self::OPT_GROUP, self::OPT_THANKYOU_TEXT);
 
@@ -123,7 +127,47 @@ class Kovacic_CV_Feedback {
                         <th scope="row"><label for="<?php echo self::OPT_NOTIFY_EMAIL; ?>">Internal notification emails</label></th>
                         <td>
                             <input type="text" id="<?php echo self::OPT_NOTIFY_EMAIL; ?>" name="<?php echo self::OPT_NOTIFY_EMAIL; ?>" value="<?php echo esc_attr(get_option(self::OPT_NOTIFY_EMAIL)); ?>" class="regular-text" placeholder="talent@yourdomain.com, hr@yourdomain.com" />
-                            <p class="description">Optional. If several are listed, separate them with commas. We'll send a notice for each submission.</p>
+                            <p class="description">Default recipients. If several are listed, separate them with commas. We'll send a notice for each submission when no post-specific list is set.</p>
+                            <h4 style="margin:16px 0 8px;">Per blog post recipients</h4>
+                            <p class="description">Add or remove emails per blog post. Leave blank to disable notifications for that post.</p>
+                            <?php
+                            $posts = get_posts([
+                                'post_type' => 'post',
+                                'post_status' => 'any',
+                                'numberposts' => -1,
+                                'orderby' => 'title',
+                                'order' => 'ASC',
+                            ]);
+                            $notify_by_post = get_option(self::OPT_NOTIFY_EMAILS_BY_POST, []);
+                            ?>
+                            <?php if (!empty($posts)) : ?>
+                                <table class="widefat striped" style="max-width:900px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Blog post</th>
+                                            <th>Notification emails</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($posts as $post) : ?>
+                                            <tr>
+                                                <td><?php echo esc_html($post->post_title); ?></td>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        name="<?php echo self::OPT_NOTIFY_EMAILS_BY_POST; ?>[<?php echo esc_attr($post->ID); ?>]"
+                                                        value="<?php echo esc_attr($notify_by_post[$post->ID] ?? ''); ?>"
+                                                        class="regular-text"
+                                                        placeholder="talent@yourdomain.com, hr@yourdomain.com"
+                                                    />
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else : ?>
+                                <p class="description">No blog posts found yet.</p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
@@ -383,9 +427,23 @@ JS;
         return preg_replace('/<\/?strong>/', '', (string)$html);
     }
 
-    /** Obtiene emails válidos para avisos internos */
-    private function get_notify_emails() {
-        $raw = (string) get_option(self::OPT_NOTIFY_EMAIL);
+    public function sanitize_notify_emails_by_post($value) {
+        if (!is_array($value)) {
+            return [];
+        }
+        $clean = [];
+        foreach ($value as $post_id => $raw) {
+            $id = absint($post_id);
+            if ($id <= 0) {
+                continue;
+            }
+            $clean[$id] = sanitize_text_field($raw);
+        }
+        return $clean;
+    }
+
+    private function parse_notify_emails($raw) {
+        $raw = (string) $raw;
         if (!$raw) return [];
         $parts = preg_split('/[\s,;]+/', $raw);
         $emails = [];
@@ -395,7 +453,24 @@ JS;
                 $emails[] = $email;
             }
         }
-        return $emails;
+        return array_values(array_unique($emails));
+    }
+
+    /** Obtiene emails válidos para avisos internos */
+    private function get_notify_emails($vacancy_id = 0) {
+        $vacancy_id = absint($vacancy_id);
+        if ($vacancy_id > 0) {
+            $notify_by_post = get_option(self::OPT_NOTIFY_EMAILS_BY_POST, []);
+            if (is_array($notify_by_post) && array_key_exists($vacancy_id, $notify_by_post)) {
+                $raw = $notify_by_post[$vacancy_id];
+                if (trim((string) $raw) === '') {
+                    return [];
+                }
+                return $this->parse_notify_emails($raw);
+            }
+        }
+        $raw = get_option(self::OPT_NOTIFY_EMAIL);
+        return $this->parse_notify_emails($raw);
     }
 
     private function parse_form_defaults($atts, $register_only = false) {
@@ -923,7 +998,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             $safe_feedback = wp_kses( $no_strong, $allowed );
 
             // Aviso interno (texto)
-            $notify = $this->get_notify_emails();
+            $notify = $this->get_notify_emails($vacancy_effective);
             if (!empty($notify)) {
                 $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
@@ -945,7 +1020,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
 
         } else {
             // Solo aviso interno y/o confirmación de registro
-            $notify = $this->get_notify_emails();
+            $notify = $this->get_notify_emails($vacancy_effective);
             if (!empty($notify)) {
                  $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
                 $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
