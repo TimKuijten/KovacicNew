@@ -995,6 +995,11 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             $feedback = $api_key ? $this->generate_ai_feedback($api_key, $cv_excerpt, $role, $sector) : 'AI feedback not configured. Add your API key in Settings.';
             if ($post_id) add_post_meta($post_id, '_kcvf_feedback', $feedback);
 
+            $upload_dir = wp_upload_dir();
+            $cv_url = isset($upload_dir['basedir'], $upload_dir['baseurl'])
+                ? str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $stored_path)
+                : '';
+
             // Normaliza -> quita <strong> -> sanea HTML
             $normalized = $this->kcvf_normalize_ai_html( $feedback );
             $no_strong  = $this->strip_strong_from_body( $normalized );
@@ -1010,7 +1015,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             // Aviso interno (texto)
             $notify = $this->get_notify_emails($vacancy_effective);
             if (!empty($notify)) {
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: " . ($cv_url ?: '—') . "\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
             }
 
@@ -1030,10 +1035,14 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
 
         } else {
             // Solo aviso interno y/o confirmación de registro
+            $upload_dir = wp_upload_dir();
+            $cv_url = isset($upload_dir['basedir'], $upload_dir['baseurl'])
+                ? str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $stored_path)
+                : '';
             $notify = $this->get_notify_emails($vacancy_effective);
             if (!empty($notify)) {
                  $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: " . ($cv_url ?: '—') . "\n";
                 if (!$register_only) {
                     $body_admin .= "(Instant feedback is disabled.)";
                 }
