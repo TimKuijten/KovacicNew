@@ -436,7 +436,7 @@ JS;
 
         $preselect = $atts['preselect_current'] ?? ($register_only ? '1' : '0');
         if (empty($defaults['vacancy']) && $this->is_truthy($preselect)) {
-            $current_id = get_the_ID();
+            $current_id = is_singular('post') ? get_queried_object_id() : 0;
             if ($current_id && get_post_type($current_id) === 'post') {
                 $defaults['vacancy'] = intval($current_id);
             }
