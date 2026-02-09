@@ -600,38 +600,13 @@ JS;
                 </div>
 
                 <div class="kcvf-field">
-                    <label for="kcvf_role">Target role / Area</label>
-                    <input class="kcvf-input" type="text" name="kcvf_role" id="kcvf_role" placeholder="e.g., Country Manager, Head of Controlling, CFO..." value="<?php echo isset($old['role']) ? esc_attr($old['role']) : ''; ?>">
-                </div>
-
-                <div class="kcvf-field">
-                    <label for="kcvf_sector">Sector</label>
-                    <select class="kcvf-select" name="kcvf_sector" id="kcvf_sector">
-                        <option value="">— Select —</option>
-                        <?php
-                        $sectors = [
-                            'Renewable energy',
-                            'Thermal energy',
-                            'Finance',
-                            'Technology',
-                            'Engineering',
-                            'EPC',
-                            'HR',
-                            'Mining',
-                            'Legal',
-                            'Other',
-                        ];
-                        $old_sector = $old['sector'] ?? '';
-                        foreach ($sectors as $sec) {
-                            printf('<option%s>%s</option>', selected($old_sector, $sec, false), esc_html($sec));
-                        }
-                        ?>
-                    </select>
+                    <label for="kcvf_current_salary">Current salary</label>
+                    <input class="kcvf-input" type="text" name="kcvf_current_salary" id="kcvf_current_salary" placeholder="50k bruto per year or 4.000.000 CLP net per year" value="<?php echo isset($old['current_salary']) ? esc_attr($old['current_salary']) : ''; ?>">
                 </div>
 
                 <div class="kcvf-field">
                     <label for="kcvf_salary">Salary expectations</label>
-                    <input class="kcvf-input" type="text" name="kcvf_salary" id="kcvf_salary" placeholder="e.g., 2800000" value="<?php echo isset($old['salary']) ? esc_attr($old['salary']) : ''; ?>">
+                    <input class="kcvf-input" type="text" name="kcvf_salary" id="kcvf_salary" placeholder="50k bruto per year or 4.000.000 CLP net per year" value="<?php echo isset($old['salary']) ? esc_attr($old['salary']) : ''; ?>">
                 </div>
 
                 <input type="hidden" name="kcvf_vacancy" value="<?php echo esc_attr($vacancy_selected); ?>">
@@ -681,6 +656,7 @@ JS;
         $email   = isset($_POST['kcvf_email']) ? sanitize_email($_POST['kcvf_email']) : '';
         $role    = isset($_POST['kcvf_role']) ? sanitize_text_field($_POST['kcvf_role']) : '';
         $sector  = isset($_POST['kcvf_sector']) ? sanitize_text_field($_POST['kcvf_sector']) : '';
+        $current_salary = isset($_POST['kcvf_current_salary']) ? sanitize_text_field($_POST['kcvf_current_salary']) : '';
         $salary  = isset($_POST['kcvf_salary']) ? sanitize_text_field($_POST['kcvf_salary']) : '';
         $notes   = isset($_POST['kcvf_notes']) ? sanitize_textarea_field($_POST['kcvf_notes']) : '';
         $vacancy = isset($_POST['kcvf_vacancy']) ? intval($_POST['kcvf_vacancy']) : 0;
@@ -804,7 +780,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
         }
 
         if (!empty($errors)) {
-            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'salary' => $salary, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
+            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'current_salary' => $current_salary, 'salary' => $salary, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
         }
 
         // Guardar envío
@@ -821,6 +797,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             add_post_meta($post_id, '_kcvf_email', $email);
             add_post_meta($post_id, '_kcvf_role', $role);
             add_post_meta($post_id, '_kcvf_sector', $sector);
+            add_post_meta($post_id, '_kcvf_current_salary', $current_salary);
             add_post_meta($post_id, '_kcvf_salary', $salary);
             add_post_meta($post_id, '_kcvf_extract_method', $extract_method);
             add_post_meta($post_id, '_kcvf_char_count', $char_count);
@@ -916,7 +893,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             // Aviso interno (texto)
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: {$file_url}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nCurrent salary: {$current_salary}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: {$file_url}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
             }
 
@@ -939,7 +916,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
                  $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: {$file_url}\n";
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nCurrent salary: {$current_salary}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: {$file_url}\n";
                 if (!$register_only) {
                     $body_admin .= "(Instant feedback is disabled.)";
                 }
