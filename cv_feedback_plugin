@@ -58,7 +58,9 @@ class Kovacic_CV_Feedback {
     public function register_settings() {
         register_setting(self::OPT_GROUP, self::OPT_API_KEY);
         register_setting(self::OPT_GROUP, self::OPT_AUTO_FEEDBACK);
-        register_setting(self::OPT_GROUP, self::OPT_NOTIFY_EMAIL);
+        register_setting(self::OPT_GROUP, self::OPT_NOTIFY_EMAIL, [
+            'sanitize_callback' => [$this, 'sanitize_notify_emails'],
+        ]);
         register_setting(self::OPT_GROUP, self::OPT_GDPR_TEXT);
         register_setting(self::OPT_GROUP, self::OPT_THANKYOU_TEXT);
 
@@ -122,8 +124,8 @@ class Kovacic_CV_Feedback {
                     <tr>
                         <th scope="row"><label for="<?php echo self::OPT_NOTIFY_EMAIL; ?>">Internal notification emails</label></th>
                         <td>
-                            <input type="text" id="<?php echo self::OPT_NOTIFY_EMAIL; ?>" name="<?php echo self::OPT_NOTIFY_EMAIL; ?>" value="<?php echo esc_attr(get_option(self::OPT_NOTIFY_EMAIL)); ?>" class="regular-text" placeholder="talent@yourdomain.com, hr@yourdomain.com" />
-                            <p class="description">Optional. If several are listed, separate them with commas. We'll send a notice for each submission.</p>
+                            <textarea id="<?php echo self::OPT_NOTIFY_EMAIL; ?>" name="<?php echo self::OPT_NOTIFY_EMAIL; ?>" class="large-text" rows="4" placeholder="talent@yourdomain.com&#10;hr@yourdomain.com"><?php echo esc_textarea(get_option(self::OPT_NOTIFY_EMAIL)); ?></textarea>
+                            <p class="description">Optional. Add or remove recipients here (one email per line). We'll send a notice for each submission.</p>
                         </td>
                     </tr>
                     <tr>
@@ -398,6 +400,22 @@ JS;
         return $emails;
     }
 
+    public function sanitize_notify_emails($value) {
+        $raw = (string) $value;
+        if ($raw === '') {
+            return '';
+        }
+        $parts = preg_split('/[\s,;]+/', $raw);
+        $emails = [];
+        foreach ($parts as $part) {
+            $email = sanitize_email($part);
+            if ($email && is_email($email)) {
+                $emails[] = $email;
+            }
+        }
+        return implode("\n", array_values(array_unique($emails)));
+    }
+
     private function parse_form_defaults($atts, $register_only = false) {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $defaults = [];
@@ -600,8 +618,13 @@ JS;
                 </div>
 
                 <div class="kcvf-field">
-                    <label for="kcvf_role">Target role / Area</label>
+                    <label for="kcvf_role">Target role / Area (optional)</label>
                     <input class="kcvf-input" type="text" name="kcvf_role" id="kcvf_role" placeholder="e.g., Country Manager, Head of Controlling, CFO..." value="<?php echo isset($old['role']) ? esc_attr($old['role']) : ''; ?>">
+                </div>
+
+                <div class="kcvf-field">
+                    <label for="kcvf_salary_range">Salary range (optional)</label>
+                    <textarea class="kcvf-textarea" name="kcvf_salary_range" id="kcvf_salary_range" rows="3" placeholder="e.g., €80k–€100k + bonus / open to discuss"><?php echo isset($old['salary_range']) ? esc_textarea($old['salary_range']) : ''; ?></textarea>
                 </div>
 
                 <div class="kcvf-field">
@@ -696,6 +719,7 @@ JS;
         $role    = isset($_POST['kcvf_role']) ? sanitize_text_field($_POST['kcvf_role']) : '';
         $sector  = isset($_POST['kcvf_sector']) ? sanitize_text_field($_POST['kcvf_sector']) : '';
         $notes   = isset($_POST['kcvf_notes']) ? sanitize_textarea_field($_POST['kcvf_notes']) : '';
+        $salary_range = isset($_POST['kcvf_salary_range']) ? sanitize_textarea_field($_POST['kcvf_salary_range']) : '';
         $vacancy = isset($_POST['kcvf_vacancy']) ? intval($_POST['kcvf_vacancy']) : 0;
         $consent = !empty($_POST['kcvf_consent']);
 
@@ -817,7 +841,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
         }
 
         if (!empty($errors)) {
-            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
+            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'salary_range' => $salary_range, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
         }
 
         // Guardar envío
@@ -834,6 +858,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             add_post_meta($post_id, '_kcvf_email', $email);
             add_post_meta($post_id, '_kcvf_role', $role);
             add_post_meta($post_id, '_kcvf_sector', $sector);
+            add_post_meta($post_id, '_kcvf_salary_range', $salary_range);
             add_post_meta($post_id, '_kcvf_extract_method', $extract_method);
             add_post_meta($post_id, '_kcvf_char_count', $char_count);
             add_post_meta($post_id, '_kcvf_text_excerpt', $excerpt_400);
@@ -925,7 +950,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             // Aviso interno (texto)
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary range: {$salary_range}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
             }
 
@@ -948,7 +973,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             $notify = $this->get_notify_emails();
             if (!empty($notify)) {
                  $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary range: {$salary_range}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
                 if (!$register_only) {
                     $body_admin .= "(Instant feedback is disabled.)";
                 }
