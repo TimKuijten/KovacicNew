@@ -475,9 +475,13 @@ cv_url|CV (URL)
                     <thead>
                       <tr>
                         <th class="checkbox"><input type="checkbox" id="k-select-all" aria-label="<?php esc_attr_e('Seleccionar todos', 'kovacic'); ?>"></th>
-                        <th class="sortable" data-sort="candidate" aria-sort="none"><?php esc_html_e('Candidato', 'kovacic'); ?></th>
-                        <th class="sortable" data-sort="int_no" aria-sort="none"><?php esc_html_e('No. Ent.', 'kovacic'); ?></th>
-                        <th><?php esc_html_e('Etapa actual', 'kovacic'); ?></th>
+                        <th class="sortable" data-sort="candidate" aria-sort="none"><?php esc_html_e('Candidato/a', 'kovacic'); ?></th>
+                        <th><?php esc_html_e('Longlist', 'kovacic'); ?></th>
+                        <th><?php esc_html_e('Contactados', 'kovacic'); ?></th>
+                        <th><?php esc_html_e('Shortlist', 'kovacic'); ?></th>
+                        <th><?php esc_html_e('Entrevistas', 'kovacic'); ?></th>
+                        <th><?php esc_html_e('Oferta', 'kovacic'); ?></th>
+                        <th><?php esc_html_e('Status', 'kovacic'); ?></th>
                         <th><?php esc_html_e('Acciones', 'kovacic'); ?></th>
                       </tr>
                     </thead>
@@ -522,15 +526,23 @@ cv_url|CV (URL)
   const pager = document.getElementById('k-page');
 
   function statusStep(status){
-    if(!status) return 1;
+    if(!status) return {step:0,label:''};
     status = status.toLowerCase();
-    if(status.includes('reject')) return 'rejected';
-    const step1 = ['identificado','contactado','lista larga','long list'];
-    const step2 = ['entrevista','shortlist'];
-    const step3 = ['oferta','placement','colocado'];
-    if(step3.some(s=>status.includes(s))) return 3;
-    if(step2.some(s=>status.includes(s))) return 2;
-    return 1;
+    if(status.includes('rechaz') || status.includes('reject')){
+      return {step:0,label:'Rechazado',rejected:true};
+    }
+    const steps = [
+      ['identificado','lista larga','long list','longlist'],
+      ['contactado','contactados','contact'],
+      ['shortlist','short list','preseleccion','preselección'],
+      ['entrevista','entrevistas','interview'],
+      ['oferta','ofertas','placement','colocado','incorporado','contratado']
+    ];
+    let step = 0;
+    steps.forEach((labels, idx)=>{
+      if(labels.some(s=>status.includes(s))) step = Math.max(step, idx + 1);
+    });
+    return {step: step || 1, label: status};
   }
 
   function renderRows(items){
@@ -554,22 +566,30 @@ cv_url|CV (URL)
       const name=document.createElement('td');
       const cv = item.meta.cv_url?'<a href="'+item.meta.cv_url+'" target="_blank" class="k-cv-icon" title="CV">\u{1F4C4}</a>':'';
       name.innerHTML='<a href="#" class="k-candidate" data-id="'+item.id+'">'+item.meta.first_name+' '+item.meta.last_name+'</a>'+cv;
-      const intNo=document.createElement('td');
-      intNo.textContent=item.meta.int_no||'';
-      const stage=document.createElement('td');
-      const step=statusStep(item.status);
-      if(step==='rejected'){
-        stage.innerHTML='<span class="chip chip--rejected">Rechazado</span>';
-      }else{
-        stage.innerHTML='<span class="k-progress">'
-          +'<span class="k-step'+(step>=1?' is-done':'')+'"></span>'
-          +'<span class="k-step'+(step>=2?' is-done':'')+(step===2?' is-current':'')+'"></span>'
-          +'<span class="k-step'+(step>=3?' is-done':'')+(step===3?' is-current':'')+'"></span>'
-          +'</span>';
-      }
+      const progress = statusStep(item.status);
+      const stages = [1,2,3,4,5].map(idx=>{
+        const cell = document.createElement('td');
+        cell.className = 'k-stage';
+        if(progress.rejected){
+          cell.classList.add('is-rejected');
+          cell.textContent = '—';
+        }else if(progress.step >= idx){
+          cell.classList.add('is-done');
+          if(progress.step === idx) cell.classList.add('is-current');
+          cell.innerHTML = '<span class=\"k-stage-check\">✓</span>';
+        }else{
+          cell.textContent = '—';
+        }
+        return cell;
+      });
+      const statusCell=document.createElement('td');
+      const statusLabel = progress.rejected ? 'Rechazado' : (item.status || '—');
+      const statusClass = progress.rejected ? 'is-rejected' : (progress.step >= 5 ? 'is-positive' : 'is-warning');
+      statusCell.innerHTML = '<span class=\"k-status '+statusClass+'\">'+statusLabel+'</span>';
       const actions=document.createElement('td');
+      actions.className='k-action';
       actions.innerHTML='<button class="btn btn--ghost">Ver</button>';
-      tr.append(cb,name,intNo,stage,actions);
+      tr.append(cb,name,...stages,statusCell,actions);
       tbody.appendChild(tr);
     });
   }
