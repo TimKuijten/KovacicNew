@@ -6776,8 +6776,9 @@ function kvtInit(){
             const delBtn = p.can_delete ? '<button type="button" class="kvt-delete-process dashicons dashicons-trash" data-id="'+escAttr(p.id)+'" aria-label="Eliminar"></button>' : '';
             const editBtn = p.can_edit ? '<button type="button" class="kvt-btn kvt-edit-process" data-id="'+escAttr(p.id)+'" data-name="'+escAttr(p.name||'')+'" data-client-id="'+escAttr(p.client_id||'')+'" data-contact-name="'+escAttr(p.contact_name||'')+'" data-contact-email="'+escAttr(p.contact_email||'')+'" data-desc="'+escAttr(p.description||'')+'" data-meetings="'+escAttr(p.meetings||'')+'" data-recruiters="'+escAttr(Array.isArray(p.recruiters)?p.recruiters.join(','):'')+'">Editar</button>' : '';
             const warn = p.needs_review ? '<span class="kvt-flag">!</span>' : '';
+            const nameHtml = p.post_url ? '<a href="'+escAttr(p.post_url)+'" target="_blank" rel="noopener noreferrer">'+esc(p.name)+'</a>' : esc(p.name);
             return '<div class="kvt-row kvt-process-row" data-id="'+escAttr(p.id)+'" data-client="'+escAttr(p.client_id||'')+'">'
-              + '<div><span class="kvt-name">'+warn+esc(p.name)+'</span>'+subHtml+'</div>'
+              + '<div><span class="kvt-name">'+warn+nameHtml+'</span>'+subHtml+'</div>'
               + '<div class="kvt-meta">'+sel+' '+days+' '+delBtn+editBtn+'</div>'
               + '</div>';
           }).join('')
@@ -9285,7 +9286,8 @@ JS;
                 if ($u) $creator = $u->display_name;
             }
             $created = get_term_meta($t->term_id,'kvt_process_created',true);
-            $created_fmt = $created ? date_i18n('d/m/Y', strtotime($created)) : '';
+            $created_ts = $created ? strtotime($created) : 0;
+            $created_fmt = $created_ts ? date_i18n('d/m/Y', $created_ts) : '';
             $status  = get_term_meta($t->term_id,'kvt_process_status',true);
             if (!$status) $status = 'active';
             if ($status === 'discarded') {
@@ -9348,6 +9350,7 @@ JS;
                 'meetings'      => get_term_meta($t->term_id,'kvt_process_meetings',true),
                 'creator'       => $creator,
                 'created'       => $created_fmt,
+                'created_ts'    => $created_ts,
                 'status'        => $status,
                 'days'          => $days_active,
                 'candidates'    => $candidate_count,
@@ -9358,9 +9361,14 @@ JS;
                 'can_edit'      => $editable,
                 'can_delete'    => ($role === 'admin' || $creator_id === $uid),
                 'edit_url'      => admin_url('term.php?taxonomy=' . self::TAX_PROCESS . '&tag_ID=' . $t->term_id),
+                'post_url'      => ($post = get_page_by_title($t->name, OBJECT, 'post')) ? get_permalink($post) : '',
             ];
         }
         usort($items, function($a, $b) {
+            // Default order: newest created first, then by status bucket, then days active.
+            $by_date = ($b['created_ts'] ?? 0) <=> ($a['created_ts'] ?? 0);
+            if ($by_date !== 0) return $by_date;
+
             $order = ['active' => 0, 'completed' => 1, 'closed' => 2, 'discarded' => 3];
             $sa = $order[$a['status']] ?? 3;
             $sb = $order[$b['status']] ?? 3;
