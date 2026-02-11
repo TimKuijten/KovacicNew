@@ -175,6 +175,12 @@
     .grid{display:grid;gap:22px}
     .g-3{grid-template-columns:repeat(3,1fr)}
     .g-4{grid-template-columns:repeat(4,1fr)}
+    .processes-actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;margin:1rem 0;text-align:center}
+    .search-bar{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;background:#fff;box-shadow:0 6px 16px rgba(16,24,40,.06)}
+    .search-bar svg{width:18px;height:18px;color:var(--muted)}
+    .search-bar input{border:none;outline:none;font:inherit;min-width:210px}
+    .search-bar input::placeholder{color:var(--muted)}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     .pagination-controls{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:20px}
     .pagination-controls button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 18px;border-radius:var(--radius);font-weight:600;cursor:pointer;transition:background .2s ease,color .2s ease,box-shadow .2s ease}
     .pagination-controls button:hover:not([disabled]){background:var(--accent);color:#fff;box-shadow:0 12px 24px rgba(10,33,46,.18)}
@@ -183,6 +189,9 @@
     .contact-grid{grid-template-columns:1.1fr .9fr;gap:24px}
     .card{background:#fafafa;border:1px solid var(--line);border-radius:var(--radius);padding:20px}
     .card h3{margin:8px 0 6px}
+    #blog-posts .card,#closed-posts .card{text-align:center;display:grid;gap:10px}
+    #blog-posts .card a,#closed-posts .card a{justify-self:center}
+    #blog-posts .card img{margin-bottom:4px}
     .icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(180deg,#eafff9,#fff);border:1px solid #d9f4ee;display:grid;place-items:center}
     #process .card svg,
     #process-ai .card svg{width:32px;height:32px;color:var(--accent);margin-bottom:12px}
@@ -615,7 +624,7 @@
           <div class="about-visual">
             <div class="ring" aria-hidden="true"></div>
             <div class="photo">
-              <img src="https://kovacictalent.com/wp-content/uploads/2025/09/Alan2.png" alt="Senior professional meeting in modern office">
+              <img src="https://kovacictalent.com/wp-content/uploads/2026/02/Alan2.png" alt="Senior professional meeting in modern office">
             </div>
           </div>
           <div class="about-content">
@@ -793,8 +802,13 @@
   <section id="processes" class="container">
     <h2 class="section-title"><span class="values-title">Latest processes</span></h2>
     <p class="lead">The latest published processes</p>
-<div style="margin:1rem 0; text-align:center;">
+<div class="processes-actions">
   <a class="btn btn-primary" href="https://kovacictalent.com/procesos-activos/">More opportunities</a>
+  <label class="search-bar">
+    <span class="sr-only">Search entries</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 14 15.5l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 10 5a4.5 4.5 0 0 1-.5 9"/></svg>
+    <input type="search" id="process-search" placeholder="Search entries" />
+  </label>
 </div>
 
     <div id="blog-posts" class="grid g-3"></div>
@@ -916,6 +930,94 @@
 
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    const SITE_BASE = 'https://kovacictalent.com';
+    const mediaCache = new Map();
+
+    const toAbsoluteUrl = url => {
+      if(!url) return '';
+      if(url.startsWith('http')) return url;
+      return `${SITE_BASE}${url}`;
+    };
+
+    const resolveFeaturedImage = post => {
+      if(!post) return '';
+
+      const embeddedMedia = (() => {
+        if(!post._embedded || !post._embedded['wp:featuredmedia']) return null;
+        const embedded = post._embedded['wp:featuredmedia'];
+        if(Array.isArray(embedded)){
+          return embedded.length ? embedded[0] : null;
+        }
+        return embedded;
+      })();
+
+      const sizes = embeddedMedia && embeddedMedia.media_details && embeddedMedia.media_details.sizes
+        ? embeddedMedia.media_details.sizes
+        : null;
+
+      const sizedUrl = sizes && (
+        (sizes.medium_large && sizes.medium_large.source_url) ||
+        (sizes.medium && sizes.medium.source_url) ||
+        (sizes.large && sizes.large.source_url) ||
+        (sizes.full && sizes.full.source_url) ||
+        (sizes.thumbnail && sizes.thumbnail.source_url)
+      );
+
+      const directEmbedded = embeddedMedia && embeddedMedia.source_url ? embeddedMedia.source_url : '';
+      const betterFeatured = post.better_featured_image && post.better_featured_image.source_url
+        ? post.better_featured_image.source_url
+        : '';
+      const jetpack = post.jetpack_featured_media_url || '';
+      const ogImage = post.yoast_head_json && Array.isArray(post.yoast_head_json.og_image) && post.yoast_head_json.og_image[0]
+        ? post.yoast_head_json.og_image[0].url
+        : '';
+      const twitterImage = post.yoast_head_json && post.yoast_head_json.twitter_image
+        ? post.yoast_head_json.twitter_image
+        : '';
+
+      const contentImage = (() => {
+        const content = post.content && post.content.rendered ? post.content.rendered : '';
+        const match = content.match(/<img[^>]+src=["']([^"']+)/i);
+        return match ? match[1] : '';
+      })();
+
+      return toAbsoluteUrl(sizedUrl || directEmbedded || betterFeatured || jetpack || ogImage || twitterImage || contentImage);
+    };
+
+    const fetchMediaById = async mediaId => {
+      if(!mediaId) return '';
+      if(mediaCache.has(mediaId)) return mediaCache.get(mediaId);
+      try{
+        const response = await fetch(`${SITE_BASE}/wp-json/wp/v2/media/${mediaId}`);
+        if(!response.ok) throw new Error(`Media ${mediaId} error ${response.status}`);
+        const media = await response.json();
+        const sizes = media && media.media_details && media.media_details.sizes ? media.media_details.sizes : null;
+        const sizedUrl = sizes && (
+          (sizes.medium_large && sizes.medium_large.source_url) ||
+          (sizes.medium && sizes.medium.source_url) ||
+          (sizes.large && sizes.large.source_url) ||
+          (sizes.full && sizes.full.source_url) ||
+          (sizes.thumbnail && sizes.thumbnail.source_url)
+        );
+
+        const direct = media && media.source_url ? media.source_url : '';
+        const resolved = toAbsoluteUrl(sizedUrl || direct);
+        mediaCache.set(mediaId, resolved);
+        return resolved;
+      }catch(err){
+        console.error('Failed to fetch media', mediaId, err);
+        mediaCache.set(mediaId, '');
+        return '';
+      }
+    };
+
+    const hydrateFeaturedImage = async post => {
+      const resolved = resolveFeaturedImage(post);
+      if(resolved) return resolved;
+      const fetched = await fetchMediaById(post && post.featured_media);
+      return fetched || '';
+    };
 
     /* Mobile navigation */
     (function(){
@@ -1086,8 +1188,7 @@
   const nextBtn = pagination.querySelector('[data-action="next"]');
   const pageInfo = pagination.querySelector('[data-page-info]');
   const pageSize = 3;
-  const siteBase = 'https://kovacictalent.com';
-  const apiBase = `${siteBase}/wp-json/wp/v2`;
+  const apiBase = `${SITE_BASE}/wp-json/wp/v2`;
   const closedCategorySlug = 'closed';
   let posts = [];
   let currentPage = 1;
@@ -1112,7 +1213,9 @@
       article.className = 'card';
       const excerptRaw = p.excerpt && p.excerpt.rendered ? p.excerpt.rendered : '';
       const excerpt = sanitize(excerptRaw).slice(0, 140);
+      const img = p.__featuredImage || resolveFeaturedImage(p);
       article.innerHTML = `
+        ${img ? `<img src="${img}" alt="${p.title.rendered}" style="width:100%;height:160px;object-fit:cover;border-radius:var(--radius);">` : ''}
         <h3>${p.title.rendered}</h3>
         <p>${excerpt}</p>
         <a href="${p.link}" style="color:var(--accent);font-weight:600;">Read more..</a>
@@ -1181,6 +1284,15 @@
       );
     }) : [];
 
+    const hydrated = [];
+    for(const post of posts){
+      const hydratedImage = await hydrateFeaturedImage(post);
+      post.__featuredImage = hydratedImage;
+      hydrated.push(post);
+    }
+
+    posts = hydrated;
+
     render();
   }catch(err){
     container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">Unable to load closed processes right now.</p>';
@@ -1192,12 +1304,17 @@
     /* Load latest blog posts */
     (async function(){
       const container = document.getElementById('blog-posts');
+      const searchInput = document.getElementById('process-search');
       if(!container) return;
-      try{
-        const res = await fetch('https://kovacictalent.com/wp-json/wp/v2/posts?per_page=6&_embed');
-        const posts = await res.json();
+
+      const renderPosts = (posts = []) => {
+        container.innerHTML = '';
+        if(!posts.length){
+          container.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center;">No entries match your search.</p>';
+          return;
+        }
         posts.forEach(p=>{
-          const img = p._embedded && p._embedded['wp:featuredmedia'] ? p._embedded['wp:featuredmedia'][0].source_url : '';
+          const img = p.__featuredImage || resolveFeaturedImage(p);
           const article = document.createElement('article');
           article.className = 'card';
           const excerpt = p.excerpt.rendered.replace(/<[^>]+>/g,'').slice(0,140);
@@ -1209,6 +1326,63 @@
           `;
           container.appendChild(article);
         });
+      };
+
+      const fetchAllPosts = async () => {
+        const perPage = 100;
+        let page = 1;
+        let totalPages = 1;
+        let allPosts = [];
+
+        while(page <= totalPages){
+          const res = await fetch(`${SITE_BASE}/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&_embed`);
+          if(!res.ok) throw new Error(res.statusText || `Status ${res.status}`);
+
+          const batch = await res.json();
+          const headerTotalPages = res.headers.get('X-WP-TotalPages');
+          totalPages = headerTotalPages ? parseInt(headerTotalPages, 10) || 1 : 1;
+          allPosts = allPosts.concat(batch);
+          page += 1;
+        }
+
+        return allPosts;
+      };
+
+      const applyFilter = (posts, query) => {
+        const normalizedQuery = (query || '').trim().toLowerCase();
+        if(!normalizedQuery){
+          renderPosts(posts.slice(0, 6));
+          return;
+        }
+
+        const filtered = posts.filter(p =>
+          (p.title && p.title.rendered && p.title.rendered.toLowerCase().includes(normalizedQuery)) ||
+          (p.excerpt && p.excerpt.rendered && p.excerpt.rendered.toLowerCase().includes(normalizedQuery))
+        );
+
+        renderPosts(filtered);
+      };
+
+      const hydrateFeaturedImages = async posts => {
+        const hydrated = [];
+        for(const post of posts){
+          post.__featuredImage = await hydrateFeaturedImage(post);
+          hydrated.push(post);
+        }
+        return hydrated;
+      };
+
+      try{
+        const posts = await fetchAllPosts();
+        const hydratedPosts = await hydrateFeaturedImages(posts);
+
+        if(searchInput){
+          searchInput.addEventListener('input', e => {
+            applyFilter(hydratedPosts, e.target.value);
+          });
+        }
+
+        applyFilter(hydratedPosts, searchInput ? searchInput.value : '');
       }catch(err){
         console.error('Failed to load posts', err);
       }
