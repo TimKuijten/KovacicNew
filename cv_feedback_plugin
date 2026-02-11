@@ -13,6 +13,7 @@ class Kovacic_CV_Feedback {
     const OPT_API_KEY = 'kcvf_es_openai_api_key';
     const OPT_AUTO_FEEDBACK = 'kcvf_es_auto_feedback';
     const OPT_NOTIFY_EMAIL = 'kcvf_es_notify_email';
+    const OPT_NOTIFY_EMAILS_BY_POST = 'kcvf_es_notify_emails_by_post';
     const OPT_GDPR_TEXT = 'kcvf_es_gdpr_text';
     const OPT_THANKYOU_TEXT = 'kcvf_es_thankyou_text';
 
@@ -59,6 +60,9 @@ class Kovacic_CV_Feedback {
         register_setting(self::OPT_GROUP, self::OPT_API_KEY);
         register_setting(self::OPT_GROUP, self::OPT_AUTO_FEEDBACK);
         register_setting(self::OPT_GROUP, self::OPT_NOTIFY_EMAIL);
+        register_setting(self::OPT_GROUP, self::OPT_NOTIFY_EMAILS_BY_POST, [
+            'sanitize_callback' => [$this, 'sanitize_notify_emails_by_post'],
+        ]);
         register_setting(self::OPT_GROUP, self::OPT_GDPR_TEXT);
         register_setting(self::OPT_GROUP, self::OPT_THANKYOU_TEXT);
 
@@ -123,7 +127,47 @@ class Kovacic_CV_Feedback {
                         <th scope="row"><label for="<?php echo self::OPT_NOTIFY_EMAIL; ?>">Internal notification emails</label></th>
                         <td>
                             <input type="text" id="<?php echo self::OPT_NOTIFY_EMAIL; ?>" name="<?php echo self::OPT_NOTIFY_EMAIL; ?>" value="<?php echo esc_attr(get_option(self::OPT_NOTIFY_EMAIL)); ?>" class="regular-text" placeholder="talent@yourdomain.com, hr@yourdomain.com" />
-                            <p class="description">Optional. If several are listed, separate them with commas. We'll send a notice for each submission.</p>
+                            <p class="description">Default recipients. If several are listed, separate them with commas. We'll always notify these addresses.</p>
+                            <h4 style="margin:16px 0 8px;">Per blog post recipients</h4>
+                            <p class="description">Add extra emails per blog post. These will be added on top of the default recipients.</p>
+                            <?php
+                            $posts = get_posts([
+                                'post_type' => 'post',
+                                'post_status' => 'any',
+                                'numberposts' => -1,
+                                'orderby' => 'title',
+                                'order' => 'ASC',
+                            ]);
+                            $notify_by_post = get_option(self::OPT_NOTIFY_EMAILS_BY_POST, []);
+                            ?>
+                            <?php if (!empty($posts)) : ?>
+                                <table class="widefat striped" style="max-width:900px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Blog post</th>
+                                            <th>Notification emails</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($posts as $post) : ?>
+                                            <tr>
+                                                <td><?php echo esc_html($post->post_title); ?></td>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        name="<?php echo self::OPT_NOTIFY_EMAILS_BY_POST; ?>[<?php echo esc_attr($post->ID); ?>]"
+                                                        value="<?php echo esc_attr($notify_by_post[$post->ID] ?? ''); ?>"
+                                                        class="regular-text"
+                                                        placeholder="talent@yourdomain.com, hr@yourdomain.com"
+                                                    />
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php else : ?>
+                                <p class="description">No blog posts found yet.</p>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
@@ -383,9 +427,23 @@ JS;
         return preg_replace('/<\/?strong>/', '', (string)$html);
     }
 
-    /** Obtiene emails válidos para avisos internos */
-    private function get_notify_emails() {
-        $raw = (string) get_option(self::OPT_NOTIFY_EMAIL);
+    public function sanitize_notify_emails_by_post($value) {
+        if (!is_array($value)) {
+            return [];
+        }
+        $clean = [];
+        foreach ($value as $post_id => $raw) {
+            $id = absint($post_id);
+            if ($id <= 0) {
+                continue;
+            }
+            $clean[$id] = sanitize_text_field($raw);
+        }
+        return $clean;
+    }
+
+    private function parse_notify_emails($raw) {
+        $raw = (string) $raw;
         if (!$raw) return [];
         $parts = preg_split('/[\s,;]+/', $raw);
         $emails = [];
@@ -395,7 +453,27 @@ JS;
                 $emails[] = $email;
             }
         }
-        return $emails;
+        return array_values(array_unique($emails));
+    }
+
+    /** Obtiene emails válidos para avisos internos */
+    private function get_notify_emails($vacancy_id = 0) {
+        $default_raw = get_option(self::OPT_NOTIFY_EMAIL);
+        $default_emails = $this->parse_notify_emails($default_raw);
+
+        $vacancy_id = absint($vacancy_id);
+        if ($vacancy_id > 0) {
+            $notify_by_post = get_option(self::OPT_NOTIFY_EMAILS_BY_POST, []);
+            if (is_array($notify_by_post) && array_key_exists($vacancy_id, $notify_by_post)) {
+                $raw = $notify_by_post[$vacancy_id];
+                $extra_emails = $this->parse_notify_emails($raw);
+                if (!empty($extra_emails)) {
+                    return array_values(array_unique(array_merge($default_emails, $extra_emails)));
+                }
+            }
+        }
+
+        return $default_emails;
     }
 
     private function parse_form_defaults($atts, $register_only = false) {
@@ -600,8 +678,13 @@ JS;
                 </div>
 
                 <div class="kcvf-field">
-                    <label for="kcvf_role">Target role / Area</label>
+                    <label for="kcvf_role">Target role / Area (optional)</label>
                     <input class="kcvf-input" type="text" name="kcvf_role" id="kcvf_role" placeholder="e.g., Country Manager, Head of Controlling, CFO..." value="<?php echo isset($old['role']) ? esc_attr($old['role']) : ''; ?>">
+                </div>
+
+                <div class="kcvf-field">
+                    <label for="kcvf_salary">Salary range expectations (optional)</label>
+                    <input class="kcvf-input" type="text" name="kcvf_salary" id="kcvf_salary" placeholder="60k-70k gross per year / 4.500.000 CLP Net per month / open for negotiation" value="<?php echo isset($old['salary']) ? esc_attr($old['salary']) : ''; ?>">
                 </div>
 
                 <div class="kcvf-field">
@@ -695,6 +778,7 @@ JS;
         $email   = isset($_POST['kcvf_email']) ? sanitize_email($_POST['kcvf_email']) : '';
         $role    = isset($_POST['kcvf_role']) ? sanitize_text_field($_POST['kcvf_role']) : '';
         $sector  = isset($_POST['kcvf_sector']) ? sanitize_text_field($_POST['kcvf_sector']) : '';
+        $salary  = isset($_POST['kcvf_salary']) ? sanitize_text_field($_POST['kcvf_salary']) : '';
         $notes   = isset($_POST['kcvf_notes']) ? sanitize_textarea_field($_POST['kcvf_notes']) : '';
         $vacancy = isset($_POST['kcvf_vacancy']) ? intval($_POST['kcvf_vacancy']) : 0;
         $consent = !empty($_POST['kcvf_consent']);
@@ -817,7 +901,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
         }
 
         if (!empty($errors)) {
-            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'sector' => $sector, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
+            return $this->render_form($errors, ['name' => $name, 'email' => $email, 'role' => $role, 'salary' => $salary, 'sector' => $sector, 'notes' => $notes, 'vacancy' => $vacancy], $register_only, $defaults);
         }
 
         // Guardar envío
@@ -833,6 +917,7 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             add_post_meta($post_id, '_kcvf_name', $name);
             add_post_meta($post_id, '_kcvf_email', $email);
             add_post_meta($post_id, '_kcvf_role', $role);
+            add_post_meta($post_id, '_kcvf_salary', $salary);
             add_post_meta($post_id, '_kcvf_sector', $sector);
             add_post_meta($post_id, '_kcvf_extract_method', $extract_method);
             add_post_meta($post_id, '_kcvf_char_count', $char_count);
@@ -910,6 +995,11 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             $feedback = $api_key ? $this->generate_ai_feedback($api_key, $cv_excerpt, $role, $sector) : 'AI feedback not configured. Add your API key in Settings.';
             if ($post_id) add_post_meta($post_id, '_kcvf_feedback', $feedback);
 
+            $upload_dir = wp_upload_dir();
+            $cv_url = isset($upload_dir['basedir'], $upload_dir['baseurl'])
+                ? str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $stored_path)
+                : '';
+
             // Normaliza -> quita <strong> -> sanea HTML
             $normalized = $this->kcvf_normalize_ai_html( $feedback );
             $no_strong  = $this->strip_strong_from_body( $normalized );
@@ -923,9 +1013,9 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
             $safe_feedback = wp_kses( $no_strong, $allowed );
 
             // Aviso interno (texto)
-            $notify = $this->get_notify_emails();
+            $notify = $this->get_notify_emails($vacancy_effective);
             if (!empty($notify)) {
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: " . ($cv_url ?: '—') . "\nConverted DOCX: " . ($converted_docx ?: '—') . "\n\n--- FEEDBACK (plain text) ---\n" . wp_strip_all_tags($safe_feedback);
                 wp_mail($notify, 'New CV submission + Feedback', $body_admin);
             }
 
@@ -945,10 +1035,14 @@ Please upload your CV in DOCX or in a PDF with selectable text (OCR). You can al
 
         } else {
             // Solo aviso interno y/o confirmación de registro
-            $notify = $this->get_notify_emails();
+            $upload_dir = wp_upload_dir();
+            $cv_url = isset($upload_dir['basedir'], $upload_dir['baseurl'])
+                ? str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $stored_path)
+                : '';
+            $notify = $this->get_notify_emails($vacancy_effective);
             if (!empty($notify)) {
                  $subject = $register_only ? "New CV for {$vacancy_label}" : 'New CV submission';
-                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\n";
+                $body_admin = "New CV submission: {$email}\nName: {$name}\nVacancy: {$vacancy_label}\nTarget role: {$role}\nSalary expectations: {$salary}\nSector: {$sector}\nNotes: {$notes}\nFile: {$stored_path}\nFile URL: " . ($cv_url ?: '—') . "\n";
                 if (!$register_only) {
                     $body_admin .= "(Instant feedback is disabled.)";
                 }
@@ -1235,6 +1329,7 @@ RETURN (in HTML):
         $name = get_post_meta($post->ID, '_kcvf_name', true);
         $email = get_post_meta($post->ID, '_kcvf_email', true);
         $role = get_post_meta($post->ID, '_kcvf_role', true);
+        $salary = get_post_meta($post->ID, '_kcvf_salary', true);
         $sector = get_post_meta($post->ID, '_kcvf_sector', true);
         $file = get_post_meta($post->ID, '_kcvf_file', true);
         $feedback = get_post_meta($post->ID, '_kcvf_feedback', true);
@@ -1260,6 +1355,7 @@ RETURN (in HTML):
         <p><strong>Name:</strong><br><?php echo esc_html($name); ?></p>
         <p><strong>Email:</strong><br><?php echo esc_html($email); ?></p>
         <p><strong>Role:</strong><br><?php echo esc_html($role); ?></p>
+        <p><strong>Salary expectations:</strong><br><?php echo esc_html($salary); ?></p>
         <p><strong>Sector:</strong><br><?php echo esc_html($sector); ?></p>
         <p><strong>File:</strong><br><?php echo $file ? esc_html($file) : '—'; ?></p>
         <?php if ($file_url): ?>
