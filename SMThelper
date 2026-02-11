@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SMTP Helper
  * Description: Simple plugin to configure SMTP settings for WordPress.
- * Version: 1.2.0
+ * Version: 2.0.0
  * Author: ChatGPT
  */
 
@@ -26,94 +26,413 @@ function smtp_helper_register_settings() {
 }
 add_action('admin_init', 'smtp_helper_register_settings');
 
+function smtp_helper_default_account_schema() {
+    return array(
+        'id'          => '',
+        'label'       => '',
+        'match_email' => '',
+        'host'        => '',
+        'port'        => '',
+        'encryption'  => '',
+        'username'    => '',
+        'password'    => '',
+        'from_email'  => '',
+        'from_name'   => '',
+        'signature'   => '',
+    );
+}
+
+function smtp_helper_normalize_accounts($options = null) {
+    if ($options === null) {
+        $options = get_option('smtp_helper_options', array());
+    }
+
+    $accounts = array();
+    if (isset($options['accounts']) && is_array($options['accounts'])) {
+        $accounts = $options['accounts'];
+    } elseif (!empty($options['host'])) {
+        // Backwards compatibility with the single-account format.
+        $legacy = smtp_helper_default_account_schema();
+        $legacy['id']          = 'legacy';
+        $legacy['host']        = $options['host'];
+        $legacy['port']        = $options['port'] ?? '';
+        $legacy['encryption']  = $options['encryption'] ?? '';
+        $legacy['username']    = $options['username'] ?? '';
+        $legacy['password']    = $options['password'] ?? '';
+        $legacy['from_email']  = $options['from_email'] ?? '';
+        $legacy['from_name']   = $options['from_name'] ?? '';
+        $legacy['signature']   = $options['signature'] ?? '';
+        $accounts[] = $legacy;
+    }
+
+    $normalized = array();
+    foreach ((array) $accounts as $index => $account) {
+        if (!is_array($account)) {
+            continue;
+        }
+        $account = array_merge(smtp_helper_default_account_schema(), $account);
+        if ($account['id'] === '') {
+            $account['id'] = 'acc_' . md5($index . '_' . wp_rand());
+        }
+        $normalized[] = $account;
+    }
+
+    return $normalized;
+}
+
+function smtp_helper_get_accounts() {
+    return smtp_helper_normalize_accounts();
+}
+
+function smtp_helper_get_account_for_email($email) {
+    $email = sanitize_email($email);
+    if (!$email) {
+        return null;
+    }
+
+    $accounts = smtp_helper_normalize_accounts();
+    foreach ($accounts as $account) {
+        $raw = strtolower((string) $account['match_email']);
+        if ($raw === '') {
+            continue;
+        }
+        $needles = preg_split('/[\s,;]+/', $raw);
+        foreach ($needles as $needle) {
+            if ($needle !== '' && strtolower($email) === $needle) {
+                return $account;
+            }
+        }
+    }
+
+    return null;
+}
+
+function smtp_helper_use_account($account) {
+    if (is_array($account) && !empty($account['id'])) {
+        $GLOBALS['smtp_helper_active_account'] = $account['id'];
+        return true;
+    }
+    if (is_string($account) && $account !== '') {
+        $GLOBALS['smtp_helper_active_account'] = $account;
+        return true;
+    }
+    return false;
+}
+
+function smtp_helper_clear_account() {
+    unset($GLOBALS['smtp_helper_active_account']);
+}
+
 function smtp_helper_render_settings_page() {
-    $options = get_option('smtp_helper_options', array());
+    $options  = get_option('smtp_helper_options', array());
+    $accounts = smtp_helper_normalize_accounts($options);
+    if (empty($accounts)) {
+        $accounts[] = smtp_helper_default_account_schema();
+    }
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('SMTP Helper Settings', 'smtp-helper'); ?></h1>
+        <p><?php esc_html_e('Configure one or more SMTP accounts. When sending emails you can pick the matching account based on the administrator email address.', 'smtp-helper'); ?></p>
         <form method="post" action="options.php">
             <?php settings_fields('smtp_helper_options_group'); ?>
+            <div id="smtp-helper-accounts" class="smtp-helper-accounts">
+                <?php foreach ($accounts as $index => $account) : ?>
+                    <fieldset class="smtp-helper-account">
+                        <legend><?php printf(esc_html__('Account %d', 'smtp-helper'), $index + 1); ?></legend>
+                        <input type="hidden" name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][id]" value="<?php echo esc_attr($account['id']); ?>" />
+                        <table class="form-table" role="presentation">
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('Label', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][label]" type="text" value="<?php echo esc_attr($account['label']); ?>" class="regular-text" placeholder="<?php esc_attr_e('Optional description', 'smtp-helper'); ?>" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('Match Email(s)', 'smtp-helper'); ?></label></th>
+                                <td>
+                                    <input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][match_email]" type="text" value="<?php echo esc_attr($account['match_email']); ?>" class="regular-text" placeholder="<?php esc_attr_e('user@example.com', 'smtp-helper'); ?>" />
+                                    <p class="description"><?php esc_html_e('Comma or space separated list of administrator email addresses that should use this SMTP account.', 'smtp-helper'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('SMTP Host', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][host]" type="text" value="<?php echo esc_attr($account['host']); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('SMTP Port', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][port]" type="number" value="<?php echo esc_attr($account['port']); ?>" class="small-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('Encryption', 'smtp-helper'); ?></label></th>
+                                <td>
+                                    <?php $enc = $account['encryption']; ?>
+                                    <select name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][encryption]">
+                                        <option value="" <?php selected($enc, ''); ?>><?php esc_html_e('None', 'smtp-helper'); ?></option>
+                                        <option value="ssl" <?php selected($enc, 'ssl'); ?>>SSL</option>
+                                        <option value="tls" <?php selected($enc, 'tls'); ?>>TLS</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('Username', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][username]" type="text" value="<?php echo esc_attr($account['username']); ?>" class="regular-text" autocomplete="off" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('Password', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][password]" type="password" value="<?php echo esc_attr($account['password']); ?>" class="regular-text" autocomplete="new-password" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('From Email', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][from_email]" type="email" value="<?php echo esc_attr($account['from_email']); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('From Name', 'smtp-helper'); ?></label></th>
+                                <td><input name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][from_name]" type="text" value="<?php echo esc_attr($account['from_name']); ?>" class="regular-text" /></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label><?php esc_html_e('Signature (HTML)', 'smtp-helper'); ?></label></th>
+                                <td><textarea name="smtp_helper_options[accounts][<?php echo esc_attr($index); ?>][signature]" rows="5" class="large-text code"><?php echo esc_textarea($account['signature']); ?></textarea></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Remove', 'smtp-helper'); ?></th>
+                                <td><label><input type="checkbox" class="smtp-helper-remove" data-account-index="<?php echo esc_attr($index); ?>" /> <?php esc_html_e('Delete this account on save', 'smtp-helper'); ?></label></td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                <?php endforeach; ?>
+            </div>
+            <p>
+                <button type="button" class="button" id="smtp-helper-add-account"><?php esc_html_e('Add another account', 'smtp-helper'); ?></button>
+            </p>
+            <?php submit_button(); ?>
+        </form>
+    </div>
+    <script type="text/html" id="tmpl-smtp-helper-account">
+        <fieldset class="smtp-helper-account">
+            <legend><?php esc_html_e('New Account', 'smtp-helper'); ?></legend>
+            <input type="hidden" name="smtp_helper_options[accounts][__index__][id]" value="" />
             <table class="form-table" role="presentation">
                 <tr>
-                    <th scope="row"><label for="smtp_helper_host"><?php esc_html_e('SMTP Host', 'smtp-helper'); ?></label></th>
-                    <td><input name="smtp_helper_options[host]" id="smtp_helper_host" type="text" value="<?php echo esc_attr($options['host'] ?? ''); ?>" class="regular-text" /></td>
+                    <th scope="row"><label><?php esc_html_e('Label', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][label]" type="text" class="regular-text" placeholder="<?php esc_attr_e('Optional description', 'smtp-helper'); ?>" /></td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="smtp_helper_port"><?php esc_html_e('SMTP Port', 'smtp-helper'); ?></label></th>
-                    <td><input name="smtp_helper_options[port]" id="smtp_helper_port" type="number" value="<?php echo esc_attr($options['port'] ?? ''); ?>" class="small-text" /></td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="smtp_helper_encryption"><?php esc_html_e('Encryption', 'smtp-helper'); ?></label></th>
+                    <th scope="row"><label><?php esc_html_e('Match Email(s)', 'smtp-helper'); ?></label></th>
                     <td>
-                        <?php $enc = $options['encryption'] ?? ''; ?>
-                        <select name="smtp_helper_options[encryption]" id="smtp_helper_encryption">
-                            <option value="" <?php selected($enc, ''); ?>><?php esc_html_e('None', 'smtp-helper'); ?></option>
-                            <option value="ssl" <?php selected($enc, 'ssl'); ?>>SSL</option>
-                            <option value="tls" <?php selected($enc, 'tls'); ?>>TLS</option>
+                        <input name="smtp_helper_options[accounts][__index__][match_email]" type="text" class="regular-text" placeholder="<?php esc_attr_e('user@example.com', 'smtp-helper'); ?>" />
+                        <p class="description"><?php esc_html_e('Comma or space separated list of administrator email addresses that should use this SMTP account.', 'smtp-helper'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label><?php esc_html_e('SMTP Host', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][host]" type="text" class="regular-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label><?php esc_html_e('SMTP Port', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][port]" type="number" class="small-text" /></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label><?php esc_html_e('Encryption', 'smtp-helper'); ?></label></th>
+                    <td>
+                        <select name="smtp_helper_options[accounts][__index__][encryption]">
+                            <option value=""><?php esc_html_e('None', 'smtp-helper'); ?></option>
+                            <option value="ssl">SSL</option>
+                            <option value="tls">TLS</option>
                         </select>
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="smtp_helper_username"><?php esc_html_e('Username', 'smtp-helper'); ?></label></th>
-                    <td><input name="smtp_helper_options[username]" id="smtp_helper_username" type="text" value="<?php echo esc_attr($options['username'] ?? ''); ?>" class="regular-text" /></td>
+                    <th scope="row"><label><?php esc_html_e('Username', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][username]" type="text" class="regular-text" autocomplete="off" /></td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="smtp_helper_password"><?php esc_html_e('Password', 'smtp-helper'); ?></label></th>
-                    <td><input name="smtp_helper_options[password]" id="smtp_helper_password" type="password" value="<?php echo esc_attr($options['password'] ?? ''); ?>" class="regular-text" /></td>
+                    <th scope="row"><label><?php esc_html_e('Password', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][password]" type="password" class="regular-text" autocomplete="new-password" /></td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="smtp_helper_from_email"><?php esc_html_e('From Email', 'smtp-helper'); ?></label></th>
-                    <td><input name="smtp_helper_options[from_email]" id="smtp_helper_from_email" type="email" value="<?php echo esc_attr($options['from_email'] ?? ''); ?>" class="regular-text" /></td>
+                    <th scope="row"><label><?php esc_html_e('From Email', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][from_email]" type="email" class="regular-text" /></td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="smtp_helper_from_name"><?php esc_html_e('From Name', 'smtp-helper'); ?></label></th>
-                    <td><input name="smtp_helper_options[from_name]" id="smtp_helper_from_name" type="text" value="<?php echo esc_attr($options['from_name'] ?? ''); ?>" class="regular-text" /></td>
+                    <th scope="row"><label><?php esc_html_e('From Name', 'smtp-helper'); ?></label></th>
+                    <td><input name="smtp_helper_options[accounts][__index__][from_name]" type="text" class="regular-text" /></td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="smtp_helper_signature"><?php esc_html_e('Signature (HTML)', 'smtp-helper'); ?></label></th>
-                    <td><textarea name="smtp_helper_options[signature]" id="smtp_helper_signature" rows="5" class="large-text code"><?php echo esc_textarea($options['signature'] ?? ''); ?></textarea></td>
+                    <th scope="row"><label><?php esc_html_e('Signature (HTML)', 'smtp-helper'); ?></label></th>
+                    <td><textarea name="smtp_helper_options[accounts][__index__][signature]" rows="5" class="large-text code"></textarea></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Remove', 'smtp-helper'); ?></th>
+                    <td><label><input type="checkbox" class="smtp-helper-remove" data-account-index="__index__" /> <?php esc_html_e('Delete this account on save', 'smtp-helper'); ?></label></td>
                 </tr>
             </table>
-            <?php submit_button(); ?>
-        </form>
-    </div>
+        </fieldset>
+    </script>
+    <script>
+    (function(){
+        const container = document.getElementById('smtp-helper-accounts');
+        const template  = document.getElementById('tmpl-smtp-helper-account');
+        if (!container || !template) {
+            return;
+        }
+        const addButton = document.getElementById('smtp-helper-add-account');
+        const updateNames = () => {
+            const accounts = container.querySelectorAll('.smtp-helper-account');
+            accounts.forEach((account, index) => {
+                account.querySelectorAll('input, textarea, select').forEach((input) => {
+                    const name = input.getAttribute('name');
+                    if (!name) {
+                        return;
+                    }
+                    const newName = name.replace(/accounts\]\[[^\]]+\]/, 'accounts][' + index + ']');
+                    if (newName !== name) {
+                        input.setAttribute('name', newName);
+                    }
+                });
+                const remove = account.querySelector('.smtp-helper-remove');
+                if (remove) {
+                    remove.dataset.accountIndex = String(index);
+                }
+            });
+        };
+        if (addButton) {
+            addButton.addEventListener('click', function(){
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = template.innerHTML.replace(/__index__/g, container.children.length);
+                container.appendChild(wrapper.firstElementChild);
+                updateNames();
+            });
+        }
+        container.addEventListener('change', function(event){
+            const target = event.target;
+            if (!target.classList.contains('smtp-helper-remove')) {
+                return;
+            }
+            if (target.checked) {
+                const parent = target.closest('.smtp-helper-account');
+                if (parent) {
+                    parent.parentNode.removeChild(parent);
+                    updateNames();
+                }
+            }
+        });
+        updateNames();
+    })();
+    </script>
     <?php
 }
 
 function smtp_helper_sanitize($input) {
-    $output = array();
-    $output['host']       = sanitize_text_field($input['host'] ?? '');
-    $output['port']       = intval($input['port'] ?? 0);
-    $output['encryption'] = sanitize_text_field($input['encryption'] ?? '');
-    $output['username']   = sanitize_text_field($input['username'] ?? '');
-    $output['password']   = sanitize_text_field($input['password'] ?? '');
-    $output['from_email'] = sanitize_email($input['from_email'] ?? '');
-    $output['from_name']  = sanitize_text_field($input['from_name'] ?? '');
-    $output['signature']  = wp_kses_post($input['signature'] ?? '');
-    return $output;
+    $accounts = array();
+    if (isset($input['accounts']) && is_array($input['accounts'])) {
+        foreach ($input['accounts'] as $account) {
+            if (!is_array($account)) {
+                continue;
+            }
+            $host = sanitize_text_field($account['host'] ?? '');
+            $match = sanitize_textarea_field($account['match_email'] ?? '');
+            $username = sanitize_text_field($account['username'] ?? '');
+            $password = sanitize_text_field($account['password'] ?? '');
+            $from_email = sanitize_email($account['from_email'] ?? '');
+            $from_name  = sanitize_text_field($account['from_name'] ?? '');
+            $signature  = wp_kses_post($account['signature'] ?? '');
+            $port       = isset($account['port']) ? intval($account['port']) : '';
+            $enc        = sanitize_text_field($account['encryption'] ?? '');
+            $label      = sanitize_text_field($account['label'] ?? '');
+            $id         = sanitize_text_field($account['id'] ?? '');
+
+            if ($host === '' && $match === '' && $username === '' && $from_email === '' && $label === '') {
+                continue;
+            }
+
+            if ($id === '') {
+                $id = 'acc_' . md5(wp_rand() . microtime(true));
+            }
+
+            $accounts[] = array(
+                'id'          => $id,
+                'label'       => $label,
+                'match_email' => $match,
+                'host'        => $host,
+                'port'        => $port,
+                'encryption'  => $enc,
+                'username'    => $username,
+                'password'    => $password,
+                'from_email'  => $from_email,
+                'from_name'   => $from_name,
+                'signature'   => $signature,
+            );
+        }
+    } else {
+        // Backwards compatibility with legacy submissions.
+        $legacy = array(
+            'host'        => sanitize_text_field($input['host'] ?? ''),
+            'port'        => intval($input['port'] ?? 0),
+            'encryption'  => sanitize_text_field($input['encryption'] ?? ''),
+            'username'    => sanitize_text_field($input['username'] ?? ''),
+            'password'    => sanitize_text_field($input['password'] ?? ''),
+            'from_email'  => sanitize_email($input['from_email'] ?? ''),
+            'from_name'   => sanitize_text_field($input['from_name'] ?? ''),
+            'signature'   => wp_kses_post($input['signature'] ?? ''),
+        );
+        if ($legacy['host'] || $legacy['username'] || $legacy['from_email']) {
+            $legacy['id'] = 'acc_' . md5(wp_rand() . microtime(true));
+            $legacy['label'] = '';
+            $legacy['match_email'] = '';
+            $accounts[] = $legacy;
+        }
+    }
+
+    return array('accounts' => $accounts);
 }
 
 function smtp_helper_phpmailer_init($phpmailer) {
-    $options = get_option('smtp_helper_options');
-    if (empty($options) || empty($options['host'])) {
+    $options  = get_option('smtp_helper_options');
+    $accounts = smtp_helper_normalize_accounts($options);
+    if (empty($accounts)) {
+        return;
+    }
+
+    $active_id = $GLOBALS['smtp_helper_active_account'] ?? null;
+    $selected = null;
+
+    if ($active_id) {
+        foreach ($accounts as $account) {
+            if (!empty($account['id']) && $account['id'] === $active_id) {
+                $selected = $account;
+                break;
+            }
+        }
+        if ($active_id === false) {
+            $selected = null;
+        }
+    }
+
+    if ($selected === null && $active_id !== false) {
+        $selected = $accounts[0];
+    }
+
+    if (!$selected || empty($selected['host'])) {
         return;
     }
 
     $phpmailer->isSMTP();
-    $phpmailer->Host = $options['host'];
-    if (!empty($options['port'])) {
-        $phpmailer->Port = $options['port'];
+    $phpmailer->Host = $selected['host'];
+
+    if (!empty($selected['port'])) {
+        $phpmailer->Port = (int) $selected['port'];
     }
-    if (!empty($options['username'])) {
+
+    if (!empty($selected['username'])) {
         $phpmailer->SMTPAuth = true;
-        $phpmailer->Username = $options['username'];
-        $phpmailer->Password = $options['password'];
+        $phpmailer->Username = $selected['username'];
+        $phpmailer->Password = $selected['password'];
     }
-    if (!empty($options['encryption'])) {
-        $phpmailer->SMTPSecure = $options['encryption'];
+
+    if (!empty($selected['encryption'])) {
+        $phpmailer->SMTPSecure = $selected['encryption'];
     }
-    if (!empty($options['from_email'])) {
-        $phpmailer->setFrom($options['from_email'], $options['from_name'] ?? '');
+
+    if (!empty($selected['from_email'])) {
+        $phpmailer->setFrom($selected['from_email'], $selected['from_name'] ?? '');
     }
 }
 add_action('phpmailer_init', 'smtp_helper_phpmailer_init');
