@@ -2262,24 +2262,38 @@ JS;
         ]);
         $recent_candidates = $recent_q->found_posts;
 
+        $brand_logo = 'https://kovacictalent.com/wp-content/uploads/2025/08/Logo_Kovacic.png';
+        $brand_tagline = esc_html__('Pipeline workspace', 'kovacic');
         ob_start(); ?>
-        <div class="kvt-wrapper">
+        <div class="kvt-shell">
+          <div class="kvt-wrapper">
             <nav class="kvt-nav" aria-label="Navegación principal">
-                <a href="#" class="active" data-view="detalles"><span class="dashicons dashicons-dashboard"></span> Panel</a>
-                <a href="#" data-view="calendario"><span class="dashicons dashicons-calendar"></span> Calendario</a>
-                <a href="#" data-view="base"><span class="dashicons dashicons-admin-users"></span> Candidatos</a>
-                <a href="#" data-view="base" id="kvt_open_clients"><span class="dashicons dashicons-businessman"></span> Clientes</a>
-                <a href="#" data-view="base" id="kvt_open_processes"><span class="dashicons dashicons-networking"></span> Procesos</a>
-                <?php if ($ats_role === 'admin'): ?>
-                <a href="#" data-view="email" id="kvt_nav_email"><span class="dashicons dashicons-email"></span> Correo</a>
-                <?php endif; ?>
-                <a href="#" data-view="keyword"><span class="dashicons dashicons-search"></span> <?php esc_html_e('Búsqueda de palabras', 'kovacic'); ?></a>
-                <a href="#" data-view="ai"><span class="dashicons dashicons-search"></span> Buscador IA</a>
-                <a href="#" data-view="boards" id="kvt_nav_boards"><span class="dashicons dashicons-admin-generic"></span> Tableros</a>
-                <a href="#" data-view="chat"><span class="dashicons dashicons-format-chat"></span> Chat con MIT</a>
-                <?php if ($ats_role === 'admin'): ?>
-                <a href="#" data-view="update"><span class="dashicons dashicons-update"></span> Update</a>
-                <?php endif; ?>
+              <div class="kvt-nav-inner">
+                <div class="kvt-nav-brand">
+                  <img src="<?php echo esc_url($brand_logo); ?>" alt="Kovacic Talent" class="kvt-nav-logo">
+                  <div class="kvt-brand-text">
+                    <span class="kvt-brand-name">Kovacic Talent</span>
+                    <span class="kvt-brand-sub"><?php echo $brand_tagline; ?></span>
+                  </div>
+                </div>
+                <div class="kvt-nav-menu">
+                  <a href="#" class="active" data-view="detalles"><span class="dashicons dashicons-dashboard"></span> Panel</a>
+                  <a href="#" data-view="calendario"><span class="dashicons dashicons-calendar"></span> Calendario</a>
+                  <a href="#" data-view="base"><span class="dashicons dashicons-admin-users"></span> Candidatos</a>
+                  <a href="#" data-view="base" id="kvt_open_clients"><span class="dashicons dashicons-businessman"></span> Clientes</a>
+                  <a href="#" data-view="base" id="kvt_open_processes"><span class="dashicons dashicons-networking"></span> Procesos</a>
+                  <?php if ($ats_role === 'admin'): ?>
+                  <a href="#" data-view="email" id="kvt_nav_email"><span class="dashicons dashicons-email"></span> Correo</a>
+                  <?php endif; ?>
+                  <a href="#" data-view="keyword"><span class="dashicons dashicons-search"></span> <?php esc_html_e('Búsqueda de palabras', 'kovacic'); ?></a>
+                  <a href="#" data-view="ai"><span class="dashicons dashicons-search"></span> Buscador IA</a>
+                  <a href="#" data-view="boards" id="kvt_nav_boards"><span class="dashicons dashicons-admin-generic"></span> Tableros</a>
+                  <a href="#" data-view="chat"><span class="dashicons dashicons-format-chat"></span> Chat con MIT</a>
+                  <?php if ($ats_role === 'admin'): ?>
+                  <a href="#" data-view="update"><span class="dashicons dashicons-update"></span> Update</a>
+                  <?php endif; ?>
+                </div>
+              </div>
             </nav>
             <div class="kvt-content">
             <?php if ($is_client_board || $is_candidate_board): ?>
@@ -3091,7 +3105,8 @@ JS;
             </div>
           </div>
         </div>
-</div>
+      </div>
+    </div>
         <?php
         // Make maps available to JS BEFORE app script executes
         wp_add_inline_script('kvt-app', 'window.KVT_CLIENT_MAP=' . wp_json_encode($client_map) . ';', 'before');
@@ -3102,9 +3117,78 @@ JS;
     /* Assets */
     public function enqueue_assets() {
         // Styles
+        wp_enqueue_style('kvt-font-inter', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap', [], null);
         wp_enqueue_style('dashicons');
         wp_enqueue_style('select2','https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css',[], '4.1.0');
         $css = "
+        .kvt-shell{--ink:#101828;--muted:#667085;--line:#e4e7ec;--bg:#ffffff;--panel:#f8fafc;--accent:#0A212E;--accent-soft:#E9F0F5;--shadow:0 18px 46px rgba(16,24,40,.08);padding:clamp(24px,5vw,60px) clamp(12px,4vw,24px);background:linear-gradient(180deg,#f8fafc 0%,#ffffff 42%,#f8fafc 100%)}
+        .kvt-shell,.kvt-shell *{box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink)}
+        .kvt-shell a{text-decoration:none}
+        .kvt-shell .kvt-wrapper{max-width:1180px;margin:0 auto;background:var(--bg);border-radius:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:visible;border:1px solid rgba(228,231,236,.7)}
+        .kvt-shell .kvt-nav{position:sticky;top:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(228,231,236,.7);padding:clamp(18px,4vw,26px) clamp(20px,4vw,32px);z-index:40;width:100%;display:block}
+        .kvt-shell .kvt-nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+        .kvt-shell .kvt-nav-brand{display:flex;align-items:center;gap:14px}
+        .kvt-shell .kvt-nav-logo{height:40px;width:auto}
+        .kvt-shell .kvt-brand-text{display:flex;flex-direction:column;line-height:1}
+        .kvt-shell .kvt-brand-name{font-weight:800;letter-spacing:.02em;font-size:1.05rem}
+        .kvt-shell .kvt-brand-sub{font-size:.82rem;font-weight:600;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.16em}
+        .kvt-shell .kvt-nav-menu{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+        .kvt-shell .kvt-nav-menu a{display:inline-flex;align-items:center;gap:8px;padding:.6rem 1.05rem;border-radius:999px;font-weight:600;color:var(--muted);background:rgba(233,240,245,.25);border:1px solid transparent;transition:all .2s ease;box-shadow:none}
+        .kvt-shell .kvt-nav-menu a .dashicons{font-size:18px}
+        .kvt-shell .kvt-nav-menu a.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 12px 26px rgba(10,33,46,.18)}
+        .kvt-shell .kvt-nav-menu a:hover{color:var(--accent);border-color:rgba(10,33,46,.22);background:rgba(233,240,245,.8)}
+        .kvt-shell .kvt-content{padding:clamp(24px,4vw,40px);background:linear-gradient(180deg,rgba(233,240,245,.45) 0%,rgba(255,255,255,1) 24%);position:relative}
+        .kvt-shell .kvt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(228,231,236,.7)}
+        .kvt-shell .kvt-board-title{font-size:1.4rem;font-weight:700;margin:0}
+        .kvt-shell .kvt-main{display:grid;gap:24px}
+        .kvt-shell .kvt-filters{background:#fff;border:1px solid rgba(228,231,236,.9);border-radius:16px;padding:14px 18px;box-shadow:0 8px 24px rgba(16,24,40,.06);gap:16px}
+        .kvt-shell .kvt-filter-field{display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-weight:600;font-size:.92rem;color:var(--ink)}
+        .kvt-shell .kvt-filter-field label{font-weight:600}
+        .kvt-shell .kvt-filters select,.kvt-shell .kvt-filters input{width:200px;max-width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(208,213,221,.9);background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+        .kvt-shell .kvt-selected-info{background:rgba(233,240,245,.75);border:1px solid rgba(208,213,221,.8);border-radius:999px;padding:10px 16px;font-size:.9rem;font-weight:500;color:var(--accent);box-shadow:0 10px 30px rgba(16,24,40,.08)}
+        .kvt-shell .kvt-selected-info span+span:before{content:'•';margin:0 8px;color:rgba(16,24,40,.28)}
+        .kvt-shell .kvt-btn{display:inline-flex;align-items:center;gap:8px;padding:.65rem 1.1rem;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-weight:600;letter-spacing:.01em;box-shadow:0 14px 32px rgba(10,33,46,.16);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
+        .kvt-shell .kvt-btn:hover{transform:translateY(-1px);box-shadow:0 20px 38px rgba(10,33,46,.18);filter:brightness(.98)}
+        .kvt-shell .kvt-btn.kvt-secondary{background:#fff;color:var(--accent);border-color:rgba(10,33,46,.2);box-shadow:0 10px 28px rgba(16,24,40,.08)}
+        .kvt-shell .kvt-table-wrap{border-radius:20px;border:1px solid rgba(228,231,236,.9);box-shadow:0 18px 40px rgba(16,24,40,.08);overflow:hidden;background:#fff}
+        .kvt-shell #kvt_table thead th{background:rgba(233,240,245,.6);color:var(--ink);font-size:.85rem;text-transform:uppercase;letter-spacing:.05em}
+        .kvt-shell #kvt_table tbody tr:nth-child(even){background:rgba(233,240,245,.35)}
+        .kvt-shell .kvt-ats-bar{background:#fff;border-bottom:1px solid rgba(228,231,236,.7);border-radius:16px 16px 0 0;padding:16px;gap:14px}
+        .kvt-shell .kvt-ats-bar label{font-weight:600;color:var(--muted)}
+        .kvt-shell .kvt-ats-bar input,.kvt-shell .kvt-ats-bar select{border-radius:12px;border:1px solid rgba(208,213,221,.9);padding:10px 12px}
+        .kvt-shell .kvt-board{gap:18px;padding-bottom:10px}
+        .kvt-shell .kvt-col{min-width:270px;border-radius:18px;border:1px solid rgba(228,231,236,.9);background:#fff;box-shadow:0 10px 24px rgba(16,24,40,.06);padding:16px}
+        .kvt-shell .kvt-col h3{font-size:1rem;color:var(--accent)}
+        .kvt-shell .kvt-card{border-radius:16px;border:1px solid rgba(208,213,221,.9);padding:14px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
+        .kvt-shell .kvt-card .kvt-title{font-size:1rem;margin-bottom:6px}
+        .kvt-shell .kvt-card .kvt-sub,.kvt-shell .kvt-card .kvt-role{color:var(--muted);font-size:.85rem}
+        .kvt-shell .kvt-card .kvt-tag{background:rgba(233,240,245,1);border-color:rgba(214,220,228,.9);color:var(--accent);font-weight:600}
+        .kvt-shell .kvt-card .kvt-expand button{background:rgba(233,240,245,.7);color:var(--accent);border:1px solid rgba(210,214,220,.8)}
+        .kvt-shell .kvt-card .kvt-panel{border-top:1px dashed rgba(210,214,220,.9)}
+        .kvt-shell .kvt-stage-overview{background:#fff;border:1px solid rgba(228,231,236,.8);border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(16,24,40,.08)}
+        .kvt-shell .kvt-stage-step{background:rgba(233,240,245,.6);border-radius:999px;color:var(--muted);font-weight:600}
+        .kvt-shell .kvt-stage-step.current{background:var(--accent);color:#fff}
+        .kvt-shell .kvt-stage-step.done{background:#16a34a;color:#fff}
+        .kvt-shell .kvt-activity{border-radius:20px;border:1px solid rgba(228,231,236,.9);box-shadow:0 16px 34px rgba(16,24,40,.08);background:#fff;padding:18px}
+        .kvt-shell .kvt-activity-tabs{gap:12px}
+        .kvt-shell .kvt-activity-tab{border-radius:12px;background:rgba(233,240,245,.6);border:1px solid rgba(208,213,221,.8);font-weight:600;color:var(--muted)}
+        .kvt-shell .kvt-activity-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .kvt-shell .kvt-calendar,.kvt-shell .kvt-calendar-small{border-radius:20px;border:1px solid rgba(228,231,236,.9);box-shadow:0 16px 34px rgba(16,24,40,.08);background:#fff}
+        .kvt-shell .kvt-tab-panel{background:#fff;border-radius:18px;padding:18px}
+        .kvt-shell .kvt-tabs{gap:12px}
+        .kvt-shell .kvt-tabs button{border-radius:999px;padding:.55rem 1.2rem;border:1px solid rgba(208,213,221,.8);background:rgba(233,240,245,.6);font-weight:600;color:var(--muted)}
+        .kvt-shell .kvt-tabs button.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 14px 30px rgba(10,33,46,.18)}
+        .kvt-shell .kvt-modal-content{border-radius:24px;box-shadow:0 30px 60px rgba(16,24,40,.18)}
+        .kvt-shell .kvt-modal-header{border-bottom:1px solid rgba(228,231,236,.7)}
+        .kvt-shell .kvt-modal-controls{gap:16px}
+        .kvt-shell .kvt-modal-controls input,.kvt-shell .kvt-modal-controls select,.kvt-shell .kvt-modal-controls textarea{border-radius:14px;border:1px solid rgba(208,213,221,.9);padding:10px 12px;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+        .kvt-shell .kvt-modal-pager,.kvt-shell .kvt-table-pager{gap:14px;padding:12px}
+        .kvt-shell .kvt-table-pager button{border-radius:999px}
+        .kvt-shell .kvt-logo{max-width:200px;margin:0 0 24px}
+        .kvt-shell .kvt-help{top:28px;right:28px}
+        .kvt-shell .kvt-hint{color:var(--muted)}
+        @media(max-width:1024px){.kvt-shell .kvt-nav-inner{flex-direction:column;align-items:flex-start;gap:16px}.kvt-shell .kvt-nav-menu{width:100%;overflow:auto;justify-content:flex-start}.kvt-shell .kvt-nav-menu a{flex:0 0 auto}.kvt-shell .kvt-filters{flex-direction:column;align-items:stretch}.kvt-shell .kvt-filters select,.kvt-shell .kvt-filters input{width:100%}}
+        @media(max-width:720px){.kvt-shell{padding:18px 12px}.kvt-shell .kvt-wrapper{border-radius:18px}.kvt-shell .kvt-content{padding:18px}.kvt-shell .kvt-nav{padding:16px 18px}.kvt-shell .kvt-nav-menu{row-gap:8px}.kvt-shell .kvt-stage-overview{padding:16px}.kvt-shell .kvt-col{min-width:240px}}
         .kvt-wrapper{max-width:1200px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.06);display:flex}
         .kvt-toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
         .kvt-filters{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;align-items:center}
@@ -3302,18 +3386,18 @@ JS;
           .kvt-share-title{font-weight:600;margin-bottom:6px}
           .kvt-config-client{background:none;border:none;cursor:pointer;margin-left:8px}
           .kvt-config-client .dashicons{vertical-align:middle}
-          :root{--ink:#0A212E;--muted:#6B7280;--line:#E5E7EB;--bg:#FFFFFF;--accent:#0A212E;--radius:8px;--shadow:0 6px 20px rgba(10,33,46,.06)}
+          :root{--ink:#101828;--muted:#667085;--line:#E4E7EC;--bg:#FFFFFF;--accent:#0A212E;--radius:12px;--shadow:0 18px 36px rgba(16,24,40,.12)}
           .kvt-base *{box-sizing:border-box}
-          .kvt-base{font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial;color:var(--ink);background:var(--bg)}
-          .kvt-base a{color:var(--accent);text-decoration:none}
+          .kvt-base{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+          .kvt-base a{color:var(--accent);text-decoration:none;font-weight:600}
           .kvt-base a:hover{text-decoration:underline}
           .kvt-base .kvt-head{position:sticky;top:70px;background:#fff;z-index:10;padding:12px 0 16px;border-bottom:1px solid var(--line)}
           #kvt_modal .kvt-base .kvt-head{top:0}
           .kvt-base .kvt-title{font-weight:700;font-size:18px;margin:0 0 12px}
-          .kvt-base .kvt-toolbar{display:flex;gap:8px;flex-wrap:wrap}
-          .kvt-base .kvt-toolbar select,.kvt-base .kvt-toolbar input{padding:8px 10px;border:1px solid var(--line);border-radius:8px}
-          .kvt-base .kvt-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;color:var(--ink)}
-          .kvt-base .kvt-btn:hover{box-shadow:var(--shadow)}
+          .kvt-base .kvt-toolbar{display:flex;gap:10px;flex-wrap:wrap}
+          .kvt-base .kvt-toolbar select,.kvt-base .kvt-toolbar input{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+          .kvt-base .kvt-btn{display:inline-flex;align-items:center;gap:8px;padding:.6rem 1rem;border:1px solid rgba(10,33,46,.18);border-radius:999px;background:var(--accent);cursor:pointer;color:#fff;font-weight:600;box-shadow:0 12px 28px rgba(10,33,46,.16);transition:transform .2s ease,box-shadow .2s ease}
+          .kvt-base .kvt-btn:hover{box-shadow:0 18px 36px rgba(10,33,46,.18);transform:translateY(-1px)}
           .kvt-base .kvt-list{margin-top:16px;border-top:1px solid var(--line);max-height:420px;overflow:auto}
           #kvt_modal .kvt-base .kvt-list{max-height:calc(90vh - 200px)}
           .kvt-base .kvt-card-mini{border:none;padding:0;border-radius:0}
