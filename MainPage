@@ -23,9 +23,9 @@
       --w: 1180px;            /* content width */
     }
     *{box-sizing:border-box}
-    html,body{height:100%;overflow-x:hidden}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
-    body.nav-open{overflow:hidden}
+    html{overflow-x:hidden}
+    body{margin:0;min-height:100%;overflow-x:hidden;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+    html.nav-open,body.nav-open{overflow:hidden}
     a{color:inherit;text-decoration:none}
     img{max-width:100%;display:block}
     p{margin:0 0 1rem}
@@ -353,7 +353,7 @@
     .cookie-switch input:focus-visible + span{outline:3px solid rgba(10,33,46,.35);outline-offset:2px}
     .cookie-modal-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
     .cookie-modal-actions .cookie-btn{min-width:150px}
-    body.cookie-modal-open{overflow:hidden}
+    html.cookie-modal-open,body.cookie-modal-open{overflow:hidden}
 
     @media (max-width:600px){
       .cookie-banner{left:16px;right:16px;bottom:16px;width:auto;padding:16px 18px}
@@ -385,8 +385,8 @@
             "details";
         }
         .about-visual{margin:0 auto;width:min(320px,80vw)}
-        .menu-panel{position:absolute;top:100%;left:0;right:0;background:#fff;display:grid;gap:0;border-bottom:1px solid var(--line);box-shadow:0 20px 40px rgba(15,23,42,.1);border-radius:0 0 var(--radius) var(--radius);transform:translateY(-10px);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease;margin-left:0;max-height:calc(100vh - 66px);overflow:auto}
-        .nav.is-open .menu-panel{transform:translateY(0);opacity:1;pointer-events:auto}
+        .menu-panel{position:absolute;top:100%;left:0;right:0;background:#fff;display:grid;gap:0;border-bottom:1px solid var(--line);box-shadow:0 20px 40px rgba(15,23,42,.1);border-radius:0 0 var(--radius) var(--radius);transform:translateY(-10px);opacity:0;visibility:hidden;pointer-events:none;transition:transform .25s ease,opacity .25s ease,visibility 0s linear .25s;margin-left:0;max-height:calc(100vh - 66px);overflow:hidden}
+        .nav.is-open .menu-panel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto;transition:transform .25s ease,opacity .25s ease;overflow:auto}
         .menu{flex-direction:column;align-items:flex-start;gap:0;padding-block:12px}
         .menu a{width:100%;padding:12px var(--pad);border-top:1px solid var(--line);font-size:1rem}
         .menu a:first-child{border-top:none}
@@ -1063,12 +1063,14 @@
         nav.classList.remove('is-open');
         toggle.setAttribute('aria-expanded','false');
         document.body.classList.remove('nav-open');
+        document.documentElement.classList.remove('nav-open');
       };
 
       toggle.addEventListener('click', () => {
         const isOpen = nav.classList.toggle('is-open');
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         document.body.classList.toggle('nav-open', isOpen);
+        document.documentElement.classList.toggle('nav-open', isOpen);
       });
 
       links.forEach(link => link.addEventListener('click', closeMenu));
@@ -1542,6 +1544,7 @@
         modal.hidden = true;
         modal.setAttribute('aria-hidden','true');
         document.body.classList.remove('cookie-modal-open');
+        document.documentElement.classList.remove('cookie-modal-open');
         if(lastFocus){
           lastFocus.focus();
           lastFocus = null;
@@ -1557,6 +1560,7 @@
         modal.hidden = false;
         modal.removeAttribute('aria-hidden');
         document.body.classList.add('cookie-modal-open');
+        document.documentElement.classList.add('cookie-modal-open');
         focusModal();
       };
 
